@@ -1,0 +1,69 @@
+{
+  "scope": "Matrices réelles K/M ; stockage hors facteurs LU et temporaires. Onde régulière k=3π.",
+  "results": [
+    {
+      "nx": 16,
+      "ny": 4,
+      "nodes": 85,
+      "h": 0.2576941016011038,
+      "k": 9.42477796076938,
+      "dense_K_M_bytes": 115600,
+      "csr_K_M_bytes": 12904,
+      "err_l2_continuous": 0.09630952116625026,
+      "err_l2_nodal_mass": 0.07653105035605692,
+      "interpolation_l2": 0.03143549838857459,
+      "quadrature_q2_relative": 0.005579810837709753,
+      "quadrature_q3_relative": 6.577822167841418e-06
+    },
+    {
+      "nx": 32,
+      "ny": 8,
+      "nodes": 297,
+      "h": 0.1288470508005519,
+      "k": 9.42477796076938,
+      "dense_K_M_bytes": 1411344,
+      "csr_K_M_bytes": 48296,
+      "err_l2_continuous": 0.037138559422967315,
+      "err_l2_nodal_mass": 0.03208519908527869,
+      "interpolation_l2": 0.007903679153931432,
+      "quadrature_q2_relative": 0.002419730287773647,
+      "quadrature_q3_relative": 7.151430871932263e-07
+    },
+    {
+      "nx": 64,
+      "ny": 16,
+      "nodes": 1105,
+      "h": 0.06442352540027595,
+      "k": 9.42477796076938,
+      "dense_K_M_bytes": 19536400,
+      "csr_K_M_bytes": 186664,
+      "err_l2_continuous": 0.010999970720472017,
+      "err_l2_nodal_mass": 0.009717862212327219,
+      "interpolation_l2": 0.0019787280897799685,
+      "quadrature_q2_relative": 0.001751190923331869,
+      "quadrature_q3_relative": 1.294726823530823e-07
+    },
+    {
+      "nx": 128,
+      "ny": 32,
+      "nodes": 4257,
+      "h": 0.03221176270013797,
+      "k": 9.42477796076938,
+      "dense_K_M_bytes": 289952784,
+      "csr_K_M_bytes": 733736,
+      "err_l2_continuous": 0.002893411944909588,
+      "err_l2_nodal_mass": 0.002573136139412857,
+      "interpolation_l2": 0.0004948576667182737,
+      "quadrature_q2_relative": 0.0015899154145350147,
+      "quadrature_q3_relative": 2.9391854727833788e-08
+    }
+  ],
+  "spectrum_small_mesh": {
+    "nx": 16,
+    "ny": 4,
+    "lambda_min": 21.41696843620592,
+    "lambda_max": 3345.806670930575,
+    "negative_directions_k_2pi": 1,
+    "positive_directions_k_2pi": 44
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "before": {
+    "nodes": 441,
+    "elements": 800,
+    "area": 1.0,
+    "area_min": 0.0011874999999999967,
+    "area_max": 0.0013125000000000038,
+    "h_mean": 0.0727253065000219,
+    "h_max": 0.10653031351217276,
+    "aspect_max": 2.7923344650032798,
+    "edge_min": 0.6569804115392147,
+    "angle_min_deg": 19.945116192988497,
+    "angle_max_deg": 131.88582610551313,
+    "invalid_elements": 0
+  },
+  "after": {
+    "nodes": 441,
+    "elements": 800,
+    "area": 1.0,
+    "area_min": 0.0010613988310264426,
+    "area_max": 0.0014497067160973453,
+    "h_mean": 0.07267838846412726,
+    "h_max": 0.11000869554709956,
+    "aspect_max": 3.357914928440409,
+    "edge_min": 0.6520751641965974,
+    "angle_min_deg": 16.81266865885281,
+    "angle_max_deg": 140.0209284281773,
+    "invalid_elements": 0
+  },
+  "levels": {
+    "0": {
+      "nodes": 441,
+      "elements": 800,
+      "area": 1.0,
+      "area_min": 0.0012499999999999968,
+      "area_max": 0.0012500000000000022,
+      "h_mean": 0.07071067811865475,
+      "h_max": 0.07071067811865482,
+      "aspect_max": 1.393846850117352,
+      "edge_min": 0.8786796564403565,
+      "angle_min_deg": 44.999999999999936,
+      "angle_max_deg": 90.0,
+      "invalid_elements": 0
+    },
+    "1": {
+      "nodes": 441,
+      "elements": 800,
+      "area": 1.0,
+      "area_min": 0.0011874999999999954,
+      "area_max": 0.0013125000000000038,
+      "h_mean": 0.07086684834417946,
+      "h_max": 0.0823639103546331,
+      "aspect_max": 1.7575877983537642,
+      "edge_min": 0.8056353943470494,
+      "angle_min_deg": 35.12190476312211,
+      "angle_max_deg": 107.1720378505139,
+      "invalid_elements": 0
+    },
+    "2": {
+      "nodes": 441,
+      "elements": 800,
+      "area": 1.0,
+      "area_min": 0.0011905589677315487,
+      "area_max": 0.0013094410322684502,
+      "h_mean": 0.07135945235220936,
+      "h_max": 0.0938224654253643,
+      "aspect_max": 2.19304165212652,
+      "edge_min": 0.7312098600193988,
+      "angle_min_deg": 26.86591765174215,
+      "angle_max_deg": 120.44638431706531,
+      "invalid_elements": 0
+    },
+    "3": {
+      "nodes": 441,
+      "elements": 800,
+      "area": 1.0,
+      "area_min": 0.0011874999999999967,
+      "area_max": 0.0013125000000000038,
+      "h_mean": 0.0727253065000219,
+      "h_max": 0.10653031351217276,
+      "aspect_max": 2.7923344650032798,
+      "edge_min": 0.6569804115392147,
+      "angle_min_deg": 19.945116192988497,
+      "angle_max_deg": 131.88582610551313,
+      "invalid_elements": 0
+    },
+    "4": {
+      "nodes": 441,
+      "elements": 800,
+      "area": 1.0,
+      "area_min": 0.0011905589677315487,
+      "area_max": 0.0013094410322684502,
+      "h_mean": 0.07481171824596433,
+      "h_max": 0.11838595697321203,
+      "aspect_max": 3.437675090244751,
+      "edge_min": 0.5964801413669006,
+      "angle_min_deg": 15.403300547395922,
+      "angle_max_deg": 139.6138224408033,
+      "invalid_elements": 0
+    }
+  },
+  "parameters": {
+    "nx": 20,
+    "ny": 20,
+    "amplitude": 0.05,
+    "level": 3,
+    "shift_direction": [
+      1.0,
+      0.0
+    ],
+    "shift_magnitude": 0.1,
+    "edge_convention": "mean"
+  },
+  "checks": {
+    "status": "réussite",
+    "checks": "Q1–Q11 : géométrie, critères, bord, déplacement, topologie, chargement"
+  }
+}

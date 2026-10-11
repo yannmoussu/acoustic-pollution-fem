@@ -6,3 +6,15 @@ build/
 *.fls
 *.fdb_latexmk
 *.toc
+*.nav
+*.snm
+.venv/
+__pycache__/
+.DS_Store
+Yann MOUSSU.zip
+
+# Documents locaux exclus du rendu
+/slides/
+/AUDIT.md
+/MODIFICATION.md
+/MODIFICATIONS.md
