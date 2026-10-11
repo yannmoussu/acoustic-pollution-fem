@@ -131,10 +131,10 @@ Pour répondre à la question Q6, l'analyse utilise le niveau 3 de la frontière
 Les histogrammes des aires montrent la redistribution des tailles après déplacement, tout en conservant l’aire totale.
 \resultfigure{Figure1.png}{Distribution des aires, avant et après déplacement.}{0.8}
 
-Le rapport d'aspect maximal passe d'environ 3,1506 à 3,4639, et l'angle minimal de $13,97^\circ$ à $12,77^\circ$. Le déplacement choisi dégrade donc certains éléments ; il n'est pas présenté comme un algorithme d'amélioration du maillage. Le facteur d'arête minimal passe de 0,3767 à 0,3134. Les histogrammes utilisent les mêmes classes pour les deux versions afin de rendre la comparaison pertinente.
+Le rapport d'aspect maximal passe d'environ 3,1506 à 3,4639, et l'angle minimal de $13,97^\circ$ à $12,77^\circ$. Le déplacement choisi dégrade donc certains éléments ; il n'est pas présenté comme un algorithme d'amélioration du maillage. Le facteur d'arête minimal passe de 0,3767 à 0,3134. Les histogrammes utilisent les mêmes classes pour les deux versions afin de rendre la comparaison pertinente. Pour le rapport d’aspect, la valeur idéale est 1 : les valeurs observées indiquent donc des triangles allongés dès la construction initiale. Le maximum augmente de près de 10\,\% après déplacement. La figure 3 montre la répartition des éléments, tandis que ce maximum décrit le cas le plus défavorable ; il ne signifie pas que tous les triangles se dégradent dans la même proportion.
 \resultfigure{Figure2.png}{Rapport d'aspect défini dans le cours.}{0.8}
 
-Le facteur de longueur d’arête compare la plus petite arête à la moyenne des trois longueurs. Sa distribution complète celle du rapport d’aspect.
+Le facteur de longueur d’arête compare la plus petite arête à la moyenne des trois longueurs. Sa distribution complète celle du rapport d’aspect. Une valeur proche de 1 correspond à des arêtes de longueurs voisines ; une valeur faible indique qu’une arête est courte par rapport aux deux autres. Le minimum diminue ici d’environ 17\,\%, de 0,3767 à 0,3134 : le déplacement accentue donc le déséquilibre des longueurs dans les éléments les plus défavorables. Les figures 3 et 4 conduisent ainsi au même constat sur les extrema, avec deux mesures géométriques différentes.
 \resultfigure{Figure3.png}{Facteur de longueur d'arête, convention de moyenne arithmétique.}{0.8}
 
 Le cosinus du plus petit angle augmente lorsque ce dernier diminue. Sa distribution met en évidence les éléments les plus pointus après déplacement.
