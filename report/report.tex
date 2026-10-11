@@ -24,7 +24,7 @@ pdftitle={Maillages et précision FEM d'une onde acoustique},pdfauthor={Yann MOU
 \begin{document}
 \maketitle
 \begin{abstract}
-Ce projet traite les questions des deux énoncés fournis : construction et qualité d'un maillage, puis erreur d'une approximation triangulaire $P_1$ de l'équation de Helmholtz. Une onde plane connue permet de comparer la solution numérique à une solution exacte. Les normes $L^2$ et $H^1$ sont calculées par intégration sur les éléments ; le maximum de l'erreur est estimé par échantillonnage intérieur. Les études sur maillage régulier et sur maillage déformé utilisent quatre résolutions et trois nombres d'onde. Les exposants en $h$ et en $k$ sont évalués séparément et conjointement. Les données numériques, les contrôles de quadrature et les résidus sont exportés avec les figures. Le rapport distingue les tendances observées, les résultats d'interpolation et les effets de stabilité ; il ne déduit pas une loi universelle de pollution d'un seul ajustement expérimental.
+Ce projet traite les questions des deux énoncés fournis : construction et qualité d'un maillage, puis erreur d'une approximation triangulaire $P_1$ de l'équation de Helmholtz. Une onde plane connue permet de comparer la solution numérique à une solution exacte. Les normes $L^2$ et $H^1$ sont calculées par intégration sur les éléments ; le maximum de l'erreur est estimé par échantillonnage intérieur. Les études sur maillage régulier et sur maillage déformé utilisent quatre résolutions et trois nombres d'onde. Les exposants en $h$ et en $k$ sont évalués séparément et conjointement. Les contrôles de quadrature et les résidus étayent les résultats numériques. Le rapport distingue les tendances observées, les résultats d'interpolation et les effets de stabilité ; il ne déduit pas une loi universelle de pollution d'un seul ajustement expérimental.
 \end{abstract}
 \newpage
 \setcounter{tocdepth}{2}
@@ -33,8 +33,6 @@ Ce projet traite les questions des deux énoncés fournis : construction et qual
 
 \section*{Préambule}
 Ce projet étudie la qualité des maillages, puis la précision d’une approximation triangulaire $P_1$ de l’équation de Helmholtz. La première partie traite la construction, la déformation et les indicateurs géométriques du maillage. La seconde compare la solution numérique à une onde plane exacte sur des maillages réguliers et déplacés.
-
-Le calcul utilise NumPy, SciPy et Matplotlib. Les fonctions de maillage sont regroupées dans \texttt{mesh\_\allowbreak implementation.py}. Le solveur et l’étude régulière figurent dans \texttt{fem\_\allowbreak implementation.py} ; \texttt{fem\_\allowbreak implementation\_\allowbreak shifted.py} utilise ce solveur pour l’étude après déplacement interne.
 
 On note $\Omega$ le domaine, $\Gamma=\partial\Omega$ son bord, $\mathcal T_h$ la triangulation, $T$ un triangle et $|T|$ son aire. L'indice d'un élément sera $e$, pour éviter de confondre un triangle avec la matrice de rigidité $K$. Les notations $u$, $u_h$, $u^*$, $k$, $K$, $M$, $F$ et la correspondance locale/globale suivent le cours. Les coordonnées du domaine de vérification sont normalisées par une longueur de référence : $\Omega=(0,1)^2$. Dans un domaine physique, $k$ s'exprime en $\mathrm{m}^{-1}$, les coordonnées en mètres et $kh$ est sans dimension. Aucun niveau sonore en décibels n'est déduit de ces amplitudes normalisées.
 
@@ -50,10 +48,8 @@ Le support \emph{Mesh data structure}, pages 6--11, et le support FEM, page 14, 
 \end{itemize}
 L'élément $e$ utilise la tranche comprise entre les positions $p_e$ et $p_{e+1}$, cette dernière exclue. Les indices commencent à zéro, $p_0=0$, $p_{N_e}$ égale la longueur de la connectivité, et $p_{e+1}-p_e$ vaut 3 ou 4. La correspondance $\mathrm{l2g}(e,i)$ est l'indice global stocké dans cette tranche.
 
-\subsubsection{Contrôles géométriques et chargement}
+\subsubsection{Contrôles géométriques}
 Les coordonnées doivent être finies ; les indices doivent être entiers, dans les bornes et sans répétition dans un élément. Les sommets sont ordonnés le long du contour. Les maillages produits pour les calculs sont orientés positivement. Les contrôles refusent les cellules dégénérées, les quadrangles croisés, les arêtes ayant plus de deux éléments incidents et les orientations incompatibles sur les arêtes intérieures.
-
-Le chargement de fichiers effectue une véritable conversion des identifiants : un nœud d'identifiant 80 ne devient pas l'indice local 80 si le tableau ne contient que trois nœuds. Une table d'association transforme les identifiants explicites en indices locaux. Le format est documenté dans le README et les identifiants dupliqués ou manquants sont refusés.
 
 Ces contrôles locaux et d'incidence ne constituent pas un détecteur général de tout recouvrement entre deux cellules arbitrairement ajoutées. La construction structurée utilisée ici, son application géométrique injective et le déplacement conservant les orientations sur un domaine fixé fournissent le cadre des études. Les opérations topologiques seules n'effectuent pas un remaillage automatique.
 
@@ -64,7 +60,7 @@ Pour un triangle de sommets $P_0,P_1,P_2$, l'aire signée est
 \begin{equation*}
 a_T=\frac12\det(P_1-P_0,P_2-P_0),\qquad |T|=|a_T|.
 \end{equation*}
-Le calcul utilise des différences de coordonnées afin de limiter la cancellation lorsque le maillage est translaté loin de l'origine. Pour les polygones, une somme de produits vectoriels fournit l'aire. Le cas entièrement triangulaire est vectorisé. Le calcul de la valeur absolue ne suffit pas à vérifier un maillage : une aire négative signale une inversion et une aire quasi nulle une dégénérescence.
+Le calcul utilise des différences de coordonnées afin de limiter la cancellation lorsque le maillage est translaté loin de l'origine. Pour les polygones, une somme de produits vectoriels fournit l'aire. Le calcul de la valeur absolue ne suffit pas à vérifier un maillage : une aire négative signale une inversion et une aire quasi nulle une dégénérescence.
 
 La tolérance dépend de la dimension locale de l'élément : $64\varepsilon_{\rm mach}$ multiplié par le carré de son étendue. Une tolérance absolue fixe risquerait de refuser tous les triangles d'un maillage très fin ou d'accepter des triangles dégénérés dans un grand domaine.
 
@@ -89,7 +85,7 @@ La page 75 décrit le rapport de la plus petite arête à la longueur \emph{medi
 \begin{equation*}
 E_T=\frac{\min(\ell_1,\ell_2,\ell_3)}{(\ell_1+\ell_2+\ell_3)/3}.
 \end{equation*}
-Le code propose aussi la convention de longueur intermédiaire via \texttt{convention="median"}. Les résultats du rapport utilisent exclusivement \texttt{"mean"}. Une précision orale différente du professeur pourra être appliquée en changeant cette option et en régénérant les figures. $E_T$ vaut 1 pour le triangle équilatéral et environ 0,87868 pour le triangle rectangle isocèle.
+Les résultats utilisent la moyenne arithmétique. $E_T$ vaut 1 pour le triangle équilatéral et environ 0,87868 pour le triangle rectangle isocèle.
 
 La longueur intermédiaire est une convention possible, et non un mauvais algorithme : sur le triangle rectangle isocèle, elle donnerait $E_T=1$ au lieu de $0,87868$. Cette différence traduit une définition différente du critère. Le choix de la moyenne est documenté, sans prétendre résoudre définitivement l'ambiguïté du terme \emph{medium}. Inverser le rapport d'aspect donnerait également un indicateur utilisable, mais différent de la formule demandée par le cours.
 
@@ -108,7 +104,7 @@ La direction est normalisée, $\widehat d=d/\norm{d}$ ; un vecteur nul ou non fi
 
 Pour Q4, un déplacement absolu constant serait plus simple, mais son rapport à la taille de maille doublerait à chaque division de $h$ par deux. Il comparerait ainsi des perturbations relatives différentes et pourrait inverser des cellules fines. Le déplacement proportionnel à $\ell_j$ conserve au contraire l'intensité relative du protocole. Une direction aléatoire avec graine fixée pourrait aussi être reproductible ; la direction constante est retenue pour isoler un effet géométrique lisible, sans revendiquer une qualité optimale.
 
-Le code peut déplacer tous les nœuds pour Q4. Il conserve une copie des coordonnées initiales et vérifie que chaque aire garde son signe et reste non dégénérée. Un déplacement trop fort provoque une erreur explicite ; il n'est pas réduit silencieusement, car cela changerait le protocole expérimental.
+Le code peut déplacer tous les nœuds pour Q4. Après déplacement, chaque aire doit garder son signe et rester non dégénérée. Un déplacement trop fort provoque une erreur explicite ; il n'est pas réduit silencieusement, car cela changerait le protocole expérimental.
 
 \subsection{Préserver les nœuds de bord}
 Cette partie traite la question Q5.
@@ -167,7 +163,7 @@ Cette partie traite les questions Q9(i)--Q9(iv).
 \item L'ajout d'un nœud ajoute une ligne de coordonnées validées ; ce nœud est initialement isolé.
 \item La suppression d'un nœud est autorisée uniquement s'il est isolé. Les indices strictement supérieurs sont décrémentés ; les autres sont conservés. Si le nœud est encore référencé, il faut d'abord traiter les éléments incidents. Cela évite qu'une cellule comme $[0,1,2]$ devienne $[0,1,1]$.
 \end{enumerate}
-Les quatre fonctions renvoient uniformément les trois tableaux du maillage. Les tests enlèvent puis réinsèrent un élément, ajoutent puis retirent un nœud, et vérifient une renumérotation après suppression d'un nœud isolé placé avant les indices utilisés.
+Les modifications sont vérifiées par des opérations inverses d'ajout et de suppression, en contrôlant la cohérence de la connectivité.
 
 \subsection{Frontière irrégulière à aire constante}
 Cette partie traite la question Q10.
@@ -314,16 +310,16 @@ Les indices $B$ sont ceux du bord topologique et $I$ ceux de l'intérieur. Avec 
 \begin{equation*}
 A_{II}u_I=F_I-A_{IB}g_B,\qquad u_B=g_B.
 \end{equation*}
-Cette relation est celle du cours FEM, page 9. Elle évite les modifications répétées de colonnes creuses. Une fonction d'imposition complète reste disponible pour vérifier l'équivalence des deux approches. La trace discrète est l'interpolation $P_1$ de $u_d$ sur chaque segment : les valeurs sont exactes aux nœuds, mais la trace exponentielle n'est pas exactement affine entre eux.
+Cette relation est celle du cours FEM, page 9. La trace discrète est l'interpolation $P_1$ de $u_d$ sur chaque segment : les valeurs sont exactes aux nœuds, mais la trace exponentielle n'est pas exactement affine entre eux.
 
-La résolution utilise \texttt{scipy.sparse.linalg.spsolve}, après conversion du bloc intérieur en CSC. Le support \emph{Solving a linear system}, pages 7--9, justifie la factorisation directe sans inversion explicite. À fréquence assez élevée, $A$ est indéfinie ; le gradient conjugué standard n'est alors pas automatiquement applicable. Un avertissement de singularité ou une solution non finie provoque une erreur explicite.
+Le système intérieur est résolu par factorisation directe creuse. Le support \emph{Solving a linear system}, pages 7--9, justifie la factorisation directe sans inversion explicite. À fréquence assez élevée, $A$ est indéfinie ; le gradient conjugué standard n'est alors pas automatiquement applicable. La validité de la résolution est contrôlée par le résidu.
 
 Le résidu relatif calculé est
 \begin{equation*}
 r_{\rm rel}=\frac{\norm{A_{II}u_I-(F_I-A_{IB}g_B)}_2}
 {\norm{F_I-A_{IB}g_B}_2}.
 \end{equation*}
-Le programme exige $r_{\rm rel}\leq10^{-9}$ et exporte aussi l'erreur nodale de bord. Un petit résidu vérifie la résolution algébrique ; il ne garantit pas une petite erreur de discrétisation ni une bonne stabilité spectrale.
+Le résidu relatif doit satisfaire $r_{\rm rel}\leq10^{-9}$ ; les valeurs imposées au bord sont également vérifiées. Un petit résidu vérifie la résolution algébrique ; il ne garantit pas une petite erreur de discrétisation ni une bonne stabilité spectrale.
 
 \paragraph{Comparaison des méthodes de résolution.}
 La résolution dense par élimination de Gauss est légitime, mais perd l'avantage du stockage creux. Former explicitement $A^{-1}$ ajoute un calcul et un stockage inutiles lorsque seul $A^{-1}b$ est demandé. La factorisation suivie de substitutions triangulaires répond directement à ce besoin.
@@ -334,7 +330,7 @@ v^*A_{II}v=(\lambda_h-k^2)v^*M_{II}v.
 \end{equation*}
 La comparaison sur $16\times4$ donne $\lambda_{h,\min}\simeq21,417$ et $\lambda_{h,\max}\simeq3345,807$. À $k=2\pi$, $k^2\simeq39,478$ : une direction propre est négative et 44 sont positives. $A_{II}$ est donc indéfinie et les garanties usuelles du gradient conjugué, comme celles de Cholesky définie positive, ne s'appliquent pas. Cela n'est pas une preuve que tout solveur itératif échouerait. Les méthodes adaptées citées dans le cours restent des alternatives possibles, mais leur préconditionnement et leur convergence demanderaient une étude spécifique.
 
-La factorisation directe creuse est retenue comme référence robuste pour les tailles considérées. Elle n'est pas démontrée optimale en temps ou en mémoire pour de grandes simulations : le remplissage des facteurs peut devenir coûteux. La connaissance des principes de Gauss/LU suffit à comprendre le choix ; l'ordonnancement interne du solveur est confié à la bibliothèque.
+La factorisation directe creuse est retenue comme référence robuste pour les tailles considérées. Elle n'est pas démontrée optimale en temps ou en mémoire pour de grandes simulations : le remplissage des facteurs peut devenir coûteux.
 
 \subsection{Normes d'erreur et contrôles d'intégration}
 \subsubsection{Erreur continue et normes demandées}
@@ -344,7 +340,7 @@ Pour $e=u^*-u_h$, les normes sont
 |e|_{H^1(\Omega)}^2&=\sum_{T\in\mathcal T_h}\int_T\norm{\nabla u^*-\nabla u_h}_2^2\dd x,\\
 \norm{e}_{H^1(\Omega)}^2&=\norm{e}_{L^2(\Omega)}^2+|e|_{H^1(\Omega)}^2.
 \end{align*}
-La norme $H^1$, et non seulement sa semi-norme, est utilisée dans toutes les études demandées. La semi-norme est exportée séparément. Le gradient exact de l'onde vaut $(\ii k e^{\ii kx},0)$.
+La norme $H^1$, et non seulement sa semi-norme, est utilisée dans toutes les études demandées. Le gradient exact de l'onde vaut $(\ii k e^{\ii kx},0)$.
 
 Une somme d'erreurs nodales pondérée par un diamètre global ne représente pas cette intégration. De même, $e_{\rm nodes}^*Me_{\rm nodes}$ calcule la norme de $I_hu^*-u_h$, pas celle de $u^*-u_h$ ; elle omet l'erreur d'interpolation $u^*-I_hu^*$. Les valeurs exactes sont donc évaluées directement aux points de quadrature.
 
@@ -357,12 +353,12 @@ La comparaison suivante reprend les quatre résolutions et le même solveur. Le 
 \subsubsection{Quadrature et convergence numérique}
 Sur le triangle de référence, on utilise $\xi=r$, $\eta=(1-r)s$, $r,s\in[0,1]$. Le jacobien est $1-r$ et les coordonnées barycentriques sont $(1-\xi-\eta,\xi,\eta)$. Une quadrature de Gauss--Legendre tensorisée d'ordre $q$ donne $q^2$ points avec poids de somme $1/2$. Le passage au triangle physique multiplie les poids par $2|T|$.
 
-L'intégrande contient une exponentielle ; on ne prétend pas qu'une règle polynomiale de degré 2 soit exacte. Chaque cas compare $q=6$ et $q=8$ sur les normes et les erreurs d'interpolation. Le seuil relatif de contrôle est $10^{-7}$. Les variations observées restent inférieures à $3\times10^{-13}$ pour les cas de ce rapport. Les calculs sont traités par blocs de triangles pour limiter la mémoire.
+L'intégrande contient une exponentielle ; on ne prétend pas qu'une règle polynomiale de degré 2 soit exacte. Chaque cas compare $q=6$ et $q=8$ sur les normes et les erreurs d'interpolation. Le seuil relatif de contrôle est $10^{-7}$. Les variations observées restent inférieures à $3\times10^{-13}$ pour les cas de ce rapport.
 
 Une quadrature moins coûteuse est envisageable. La comparaison complémentaire avec l'ordre 8, à $k=3\pi$ sur les quatre maillages réguliers, donne pour l'ordre 2 un écart relatif $L^2$ compris entre $0,159\,\%$ et $0,558\,\%$. L'ordre 3 donne un écart maximal $6,58\times10^{-6}$, encore supérieur au seuil $10^{-7}$ retenu pour cette vérification. L'ordre 6 constitue donc un choix conservateur validé ; ces essais ne prouvent pas qu'il soit minimal, et une recherche d'ordre adaptatif pourrait réduire le coût. Le contrôle 6/8 couvre les normes et les géométries de l'étude principale, tandis que cette comparaison 2/3/8 porte seulement sur $L^2$ régulier.
 
 \subsubsection{Norme infinie : convention et estimation}
-Le code exporte d'abord $\max_j|u^*(P_j)-u_j|$, norme infinie du vecteur nodal. Il estime ensuite $\norm{e}_{L^\infty(\Omega)}$ sur des grilles barycentriques comprenant les sommets, les arêtes et l'intérieur. Les subdivisions 8 et 16 sont comparées, puis 32 et 64 si nécessaire ; l'augmentation relative du maximum doit être inférieure à 0,5\,\%.
+On distingue $\max_j|u^*(P_j)-u_j|$, norme infinie du vecteur nodal. On estime ensuite $\norm{e}_{L^\infty(\Omega)}$ sur des grilles barycentriques comprenant les sommets, les arêtes et l'intérieur. Les subdivisions 8 et 16 sont comparées, puis 32 et 64 si nécessaire ; l'augmentation relative du maximum doit être inférieure à 0,5\,\%.
 
 Les figures et tableaux utilisent ce maximum intérieur estimé, identifié comme tel. L'absence de variation sur deux grilles ne certifie pas le supremum exact ; elle est un contrôle de sensibilité d'échantillonnage. Sur le cas régulier $128\times32$, $k=\pi$, le maximum nodal vaut environ $6,18\times10^{-5}$ et le maximum intérieur estimé $1,37\times10^{-4}$. Cette différence montre pourquoi le maximum nodal seul ne suffit pas pour l'erreur continue.
 
@@ -420,7 +416,7 @@ Cette partie traite la question Q1.
 
 \subsubsection{Trois normes et raffinement}
 \resulttable{regular_errors.tex}{Erreurs continues, avec norme infinie estimée par échantillonnage.}
-À $16\times4$, $k=\pi$, on obtient $\norm{e}_{L^2}\simeq4,905\times10^{-3}$ et $\norm{e}_{H^1}\simeq1,782\times10^{-1}$. Ces valeurs remplacent les pseudo-normes de la première version. Sur $128\times32$ à la même fréquence, elles deviennent respectivement $8,099\times10^{-5}$ et $2,226\times10^{-2}$. La réduction d'un facteur proche de 4 en $L^2$ et de 2 en $H^1$ sur les derniers raffinements est conforme aux tendances attendues à $k$ fixé.
+À $16\times4$, $k=\pi$, on obtient $\norm{e}_{L^2}\simeq4,905\times10^{-3}$ et $\norm{e}_{H^1}\simeq1,782\times10^{-1}$. Sur $128\times32$ à la même fréquence, elles deviennent respectivement $8,099\times10^{-5}$ et $2,226\times10^{-2}$. La réduction d'un facteur proche de 4 en $L^2$ et de 2 en $H^1$ sur les derniers raffinements est conforme aux tendances attendues à $k$ fixé.
 \resulttable{regular_alpha.tex}{Pentes globales en $h$ à fréquence fixée, quatre résolutions.}
 \resulttable{regular_beta.tex}{Pentes en $k$ à résolution fixée, trois fréquences.}
 La pente $L^2$ vaut environ 1,9745 pour $k=\pi$, mais 1,6926 pour $k=3\pi$ sur l'ensemble des quatre maillages. Une pente plus faible sur des maillages grossiers n'implique pas à elle seule une perte de l'ordre asymptotique ; les pentes locales permettent d'examiner l'effet du raffinement. À $k=3\pi$, la pente locale $L^2$ passe de 1,3748 entre les deux premiers maillages à 1,9267 entre les deux derniers ; à $k=\pi$, elle atteint 1,9959 sur le dernier raffinement. La convergence se rapproche ainsi de l'ordre 2, comme l'illustrent les courbes d'erreur en fonction du diamètre moyen. La norme $H^1$ donne des pentes entre 1,0004 et 1,0492.
@@ -481,7 +477,7 @@ Aux points de quadrature, les indicateurs supplémentaires sont
 E_A=\max_q\bigl||u_h(x_q)|-1\bigr|,\qquad
 E_\theta=\max_q\left|\arg\bigl(u_h(x_q)\overline{u^*(x_q)}\bigr)\right|.
 \end{equation*}
-La phase est la phase principale, comprise entre $-\pi$ et $\pi$, et ne représente pas une extraction générale du nombre d'onde discret. Un quasi-zéro d'amplitude rendrait la phase indéfinie ; le code le refuse. Ces maxima sont des indicateurs échantillonnés et non des supremums certifiés.
+La phase est la phase principale, comprise entre $-\pi$ et $\pi$, et ne représente pas une extraction générale du nombre d'onde discret. Un quasi-zéro d'amplitude rendrait la phase indéfinie. Ces maxima sont des indicateurs échantillonnés et non des supremums certifiés.
 
 Pour le maillage régulier fin, l'erreur de phase est environ $2,28\times10^{-5}$ rad à $k=\pi$ et $3,10\times10^{-3}$ rad à $k=3\pi$. L'erreur d'amplitude atteint respectivement environ $1,37\times10^{-4}$ et $5,65\times10^{-3}$. Ces deux effets croissent sur les fréquences étudiées ; cela ne démontre pas que la dispersion domine uniformément l'interpolation ou l'amplitude.
 
@@ -490,9 +486,9 @@ Le cours de valeurs propres, page 25, donne $K\phi=\lambda_hM\phi$ et le décala
 \begin{equation*}
 \delta_h(k)=\min_j|\lambda_{h,j}-k^2|.
 \end{equation*}
-Une méthode de recherche spectrale autour de $k^2$ fournit la valeur propre la plus proche. Son vecteur initial est fixé pour rendre ce diagnostic reproductible ; il n'intervient pas dans la déformation du maillage. $\delta_h$ n'est pas à elle seule le conditionnement euclidien de $A$, car la matrice de masse intervient dans le problème généralisé.
+Une méthode de recherche spectrale autour de $k^2$ fournit la valeur propre la plus proche. $\delta_h$ n'est pas à elle seule le conditionnement euclidien de $A$, car la matrice de masse intervient dans le problème généralisé.
 
-La distance minimale observée sur les cas réguliers est proche de 3,21, et sur les cas déformés de 3,18. Les matrices ne sont pas détectées comme singulières. Les résidus restent inférieurs à $4\times10^{-15}$ et l'erreur nodale de Dirichlet est nulle. Les différences d'erreur entre cas résultent donc principalement de la discrétisation et de la stabilité du problème, et non d'une résolution algébrique arrêtée prématurément. La proximité du spectre reste un facteur à contrôler si l'on étend les fréquences. Les valeurs par cas des erreurs d'interpolation, des indicateurs de phase et d'amplitude, des distances spectrales et des résidus sont conservées dans les fichiers CSV et JSON. Les JSON contiennent également les pentes locales entre raffinements successifs.
+La distance minimale observée sur les cas réguliers est proche de 3,21, et sur les cas déformés de 3,18. Les matrices ne sont pas détectées comme singulières. Les résidus restent inférieurs à $4\times10^{-15}$ et l'erreur nodale de Dirichlet est nulle. Les différences d'erreur entre cas résultent donc principalement de la discrétisation et de la stabilité du problème, et non d'une résolution algébrique arrêtée prématurément. La proximité du spectre reste un facteur à contrôler si l'on étend les fréquences.
 
 \subsubsection{Portée de l'étude de pollution}
 Le modèle en $h^2k^3$ n'est pas imposé. Les exposants expérimentaux $L^2$ combinés sont proches de 3 en $k$ sur les cas retenus, tandis que les exposants $H^1$ sont proches de 2.
@@ -501,15 +497,12 @@ Imposer a priori $\alpha=2$ et $\beta=3$ ferait perdre l'information sur les nor
 
 Le nombre de fréquences reste faible. L'onde ne varie pas selon $y$ alors que $h_y=4h_x$ ; le diamètre maximal est donc un indicateur conservatif de résolution pour cette direction de propagation. Les résultats ne doivent pas être transposés automatiquement à une onde oblique, à un domaine absorbant ou à une géométrie quelconque. Le cours de localisation explique l'intérêt des frontières irrégulières, mais aucun mode localisé n'est revendiqué ici.
 
-\subsubsection{Cadre des méthodes et limites des choix}
-Les pseudo-pointeurs, les fonctions $P_1$, l'assemblage local/global, les formats COO/CSR, l'élimination des inconnues de Dirichlet et le problème propre généralisé proviennent des supports fournis. Les rappels matriciels, les matrices creuses FEM et les principes des résolutions directe et itérative correspondent aux thèmes des chapitres 4 à 7 indiqués pour le livre du cours. La factorisation creuse prolonge ces principes et relève du thème du chapitre 8, abordé plus brièvement ; le programme n'implémente pas son algorithme interne.
-
-La quadrature tensorisée et l'échantillonnage barycentrique sont des outils de calcul des intégrales et du maximum, contrôlés numériquement, plutôt que des résultats théoriques supplémentaires sur Helmholtz. La recherche spectrale ciblée de la bibliothèque est un diagnostic complémentaire : le problème $K\phi=\lambda_hM\phi$ est celui du cours, mais l'algorithme interne n'est pas présenté comme une méthode détaillée en séance. Aucune méthode itérative avancée des chapitres 10 à 13 n'est nécessaire aux résultats. Les comparaisons nouvelles sont des évaluations d'alternatives possibles ; elles ne constituent pas un historique de tentatives antérieures. Les choix retenus privilégient la conformité des quantités calculées, la validité géométrique et un protocole interprétable, sans revendiquer une optimalité universelle.
+Les choix retenus reposent sur les structures de maillage, l'approximation $P_1$, l'assemblage creux et les principes de résolution présentés dans les supports du cours. Les comparaisons d'alternatives complètent l'analyse des questions ; elles ne constituent pas un historique de tentatives antérieures ni une démonstration d'optimalité universelle.
 
 \section*{Conclusion}
 Les fonctions de maillage répondent aux dix questions obligatoires et à l'extraction facultative de frontière, avec les pseudo-pointeurs du cours. La frontière sinusoïdale est l'alternative autorisée, son aire est conservée par construction, et les cas sous-échantillonnés ou dégénérés sont refusés. Le déplacement interne est déterministe et conserve les coordonnées du bord.
 
-Les études FEM répondent aux demandes de Q1 et Q2 pour les trois normes, avec calcul des pentes séparées, des exposants conjoints, des surfaces et de la quantité combinée. Les erreurs $L^2$ et $H^1$ sont désormais celles de l'erreur continue intégrée, et le maximum intérieur reste explicitement estimé. À $k=\pi$, les ordres mesurés sont proches de 2 en $L^2$ et de 1 en $H^1$. La déformation augmente certaines erreurs, surtout sur les maillages grossiers, mais les tendances de raffinement sont préservées dans les cas étudiés.
+Les études FEM répondent aux demandes de Q1 et Q2 pour les trois normes, avec calcul des pentes séparées, des exposants conjoints, des surfaces et de la quantité combinée. Les erreurs $L^2$ et $H^1$ sont celles de l'erreur continue intégrée, et le maximum intérieur reste explicitement estimé. À $k=\pi$, les ordres mesurés sont proches de 2 en $L^2$ et de 1 en $H^1$. La déformation augmente certaines erreurs, surtout sur les maillages grossiers, mais les tendances de raffinement sont préservées dans les cas étudiés.
 
 Les résidus, la quadrature et les tests analytiques étayent la fiabilité des calculs présentés. Les variations fréquentielles, les erreurs de phase et les écarts du modèle conjoint imposent néanmoins une analyse prudente : ces expériences vérifient un problème précis et ne démontrent pas une loi universelle de pollution ou une indépendance générale vis-à-vis de la qualité du maillage.
 \clearpage

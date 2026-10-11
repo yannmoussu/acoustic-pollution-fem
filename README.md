@@ -82,3 +82,7 @@ Les versions utilisées sont NumPy 2.5.3, SciPy 1.18.1 et Matplotlib 3.11.2. Les
 ## Comparaison des choix numériques
 
 `.venv/bin/python compare_choices.py` reproduit les comparaisons complémentaires du rapport : stockage théorique plein et tableaux CSR de K/M, erreur continue et norme nodale de masse, quadratures d’ordres 2/3/8. Le spectre généralisé est calculé en dense uniquement sur le petit maillage 16×4 pour vérifier l’indéfinitude. Les résultats sont exportés dans `report/data/choices.csv` et `choices.json`, avec `report/figures/choices.png`. Le stockage mesuré exclut les facteurs LU et les tableaux temporaires ; aucun gain de temps n’est déduit de cette mesure. Le livre n’étant pas fourni dans le projet, le rapprochement avec ses chapitres repose sur les thèmes indiqués ; les supports fournis restent la référence vérifiée.
+
+## Origine des fichiers
+
+Les documents pédagogiques fournis par le professeur sont les PDF des supports et des énoncés. Les maillages utilisés dans les simulations sont construits directement en Python : aucun fichier externe de nœuds ou d’éléments n’est requis. Les CSV, JSON, tableaux LaTeX et figures sont des sorties produites pour ce projet. `compare_choices.py` reproduit les comparaisons complémentaires, sans constituer un outil ou une donnée fournis par le professeur. La fonction `load_mesh` est un utilitaire facultatif, non utilisé par les simulations du devoir.
