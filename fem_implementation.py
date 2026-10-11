@@ -1,8 +1,4 @@
-"""Partie 2 : FEM Q1 et fonctions communes à FEM Q2.
-
-Éléments triangulaires P1, onde u*=exp(i*k*x), f=0 et Dirichlet sur tout
-le bord. Vecteurs complexes de forme (n,), assemblage COO puis CSR.
-"""
+"""On résout Helmholtz en éléments triangulaires P1 et on mesure les erreurs de convergence."""
 from pathlib import Path
 import argparse
 import csv
@@ -29,6 +25,7 @@ SHIFT_MAGNITUDE = 0.1
 
 
 def _element_gradients(coords):
+    """Q1/Q2 : on calcule les gradients des trois fonctions P1 et l’aire du triangle."""
     coords = np.asarray(coords, dtype=float)
     if coords.shape != (3, 2) or not np.isfinite(coords).all():
         raise ValueError("Un élément P1 doit contenir trois points plans finis.")
@@ -41,27 +38,29 @@ def _element_gradients(coords):
     c = np.roll(coords[:, 0], -2)-np.roll(coords[:, 0], -1)
     return np.column_stack((b, c))/signed2, abs(signed2)/2
 
-# Réponse FEM Q1/Q2 — Matrices élémentaires P1 de rigidité et de masse.
 def get_trifem_elementary_stiffness(coords, area):
+    """Q1/Q2 : on calcule la matrice élémentaire de rigidité."""
     gradients, actual = _element_gradients(coords)
     if not np.isfinite(area) or not np.isclose(area, actual, rtol=1e-12, atol=0):
         raise ValueError("Aire incohérente avec les coordonnées du triangle.")
     return area*(gradients @ gradients.T)
 
 def get_trifem_elementary_mass(coords, area):
+    """Q1/Q2 : on calcule la matrice élémentaire de masse."""
     _, actual = _element_gradients(coords)
     if not np.isfinite(area) or not np.isclose(area, actual, rtol=1e-12, atol=0):
         raise ValueError("Aire incohérente avec les coordonnées du triangle.")
     return area/12*(np.ones((3, 3))+np.eye(3))
 
 def get_trifem_elementary_term(coords, area, f):
-    """Charge interpolée P1 ; exacte ici puisque f=0."""
+    """Q1/Q2 : on intègre la source interpolée P1 avec la matrice de masse."""
     f = np.asarray(f, dtype=complex).reshape(-1)
     if f.size != 3 or not np.isfinite(f).all():
         raise ValueError("Trois valeurs finies de charge attendues.")
     return get_trifem_elementary_mass(coords, area) @ f
 
 def prepare_geometry(node_coords, p_elem2nodes, elem2nodes):
+    """Q1/Q2 : on prépare les aires, gradients et diamètres des triangles."""
     validate_geometry(node_coords, p_elem2nodes, elem2nodes)
     tris, q, lengths, signed = triangle_geometry(node_coords, p_elem2nodes, elem2nodes)
     if len(tris) == 0:
@@ -72,9 +71,9 @@ def prepare_geometry(node_coords, p_elem2nodes, elem2nodes):
     return {"triangles": tris, "points": q, "areas": signed, "gradients": gradients,
             "diameters": lengths.max(axis=1), "nnodes": len(node_coords)}
 
-# Réponse FEM Q1/Q2 — Assemblage local-global du cours, triplets COO vers CSR.
 def fem_assembly(p_elem2nodes, elem2nodes, node_coords, f_unassembled=None,
                  coef_k=None, coef_m=None, geometry=None):
+    """Q1/Q2 : on assemble K, M et F dans la numérotation globale."""
     geo = geometry if geometry is not None else prepare_geometry(node_coords, p_elem2nodes, elem2nodes)
     tris, area, grad = geo["triangles"], geo["areas"], geo["gradients"]
     nelems, nnodes = len(tris), len(node_coords)
@@ -89,14 +88,17 @@ def fem_assembly(p_elem2nodes, elem2nodes, node_coords, f_unassembled=None,
     Me = area[:, None, None]/12*(np.ones((3, 3))+np.eye(3))
     rows = np.broadcast_to(tris[:, :, None], Ke.shape).ravel()
     cols = np.broadcast_to(tris[:, None, :], Ke.shape).ravel()
+    # On additionne les contributions de même position lors de la conversion en CSR.
     K = sparse.coo_matrix(((ck[:, None, None]*Ke).ravel(), (rows, cols)), shape=(nnodes, nnodes)).tocsr()
     M = sparse.coo_matrix(((cm[:, None, None]*Me).ravel(), (rows, cols)), shape=(nnodes, nnodes)).tocsr()
     Fe = np.einsum("eij,ej->ei", Me, f[tris])
     F = np.zeros(nnodes, complex)
+    # On accumule la charge des éléments partageant un même nœud.
     np.add.at(F, tris.ravel(), Fe.ravel())
     return K, M, F
 
 def _boundary_values(nodes, values, nnodes):
+    """On vérifie les indices de bord et les valeurs de Dirichlet."""
     raw = np.asarray(nodes)
     if raw.ndim != 1 or raw.dtype.kind not in "iu":
         raise ValueError("Les indices de Dirichlet doivent être un vecteur entier.")
@@ -107,14 +109,14 @@ def _boundary_values(nodes, values, nnodes):
         raise ValueError("Conditions de Dirichlet invalides.")
     return nodes, values
 
-# Réponse FEM Q1/Q2 — Condition de Dirichlet avec report du second membre.
 def apply_dirichlet_condition(nodes, values, mat, vec):
-    """Version complète, conservée pour validation ; résolution courante sur le bloc intérieur."""
+    """Q1/Q2 : on impose Dirichlet dans le système complet avec correction du second membre."""
     A = sparse.csr_matrix(mat, dtype=complex)
     nodes, values = _boundary_values(nodes, values, A.shape[0])
     vec = np.asarray(vec, dtype=complex).reshape(-1)
     if A.shape[0] != A.shape[1] or vec.size != A.shape[0]:
         raise ValueError("Dimensions du système incohérentes.")
+    # On reporte les valeurs imposées dans le second membre avant de modifier A.
     rhs = vec-A[:, nodes] @ values
     free = np.ones(A.shape[0])
     free[nodes] = 0
@@ -124,12 +126,14 @@ def apply_dirichlet_condition(nodes, values, mat, vec):
     return constrained, rhs
 
 def solve_dirichlet_system(K, M, F, boundary, values, k):
+    """Q1/Q2 : on résout le bloc intérieur de K − k²M et on contrôle le résidu."""
     if not np.isfinite(k) or k < 0:
         raise ValueError("Le nombre d'onde doit être réel, fini et positif ou nul.")
     n = K.shape[0]
     boundary, values = _boundary_values(boundary, values, n)
     interior = np.setdiff1d(np.arange(n), boundary)
     A = (K-k*k*M).tocsr()
+    # On conserve les inconnues intérieures et on reporte la contribution du bord.
     rhs = np.asarray(F, dtype=complex).reshape(-1)[interior]-A[interior][:, boundary] @ values
     u = np.zeros(n, dtype=complex)
     u[boundary] = values
@@ -150,9 +154,9 @@ def solve_dirichlet_system(K, M, F, boundary, values, k):
             raise ValueError("Le résidu relatif dépasse 10⁻⁹.")
     return u, relative_residual, interior
 
-# Réponse FEM Q1/Q2 — Onde exacte du cours et résolution de Helmholtz.
 def solve_helmholtz(node_coords, p_elem2nodes, elem2nodes, wavenumber, assembled=None,
                     return_diagnostics=False):
+    """Q1/Q2 : on résout Helmholtz avec l’onde exp(ikx) imposée aux nœuds du bord."""
     exact = np.exp(1j*wavenumber*np.asarray(node_coords)[:, 0])
     K, M, F = assembled if assembled is not None else fem_assembly(p_elem2nodes, elem2nodes, node_coords)
     boundary = get_boundary_mesh(node_coords, p_elem2nodes, elem2nodes).l2g
@@ -163,7 +167,7 @@ def solve_helmholtz(node_coords, p_elem2nodes, elem2nodes, wavenumber, assembled
     return u, exact
 
 def triangle_quadrature(order):
-    """Gauss-Legendre tensorisé par (r,s)->(r,(1-r)s) ; poids de somme 1/2."""
+    """Q1/Q2 : on transforme les points de Gauss–Legendre en points et poids triangulaires."""
     if not isinstance(order, (int, np.integer)) or order < 2:
         raise ValueError("Ordre de quadrature entier supérieur ou égal à 2 requis.")
     t, w = np.polynomial.legendre.leggauss(order)
@@ -172,9 +176,11 @@ def triangle_quadrature(order):
     wr, ws = np.meshgrid(w, w, indexing="ij")
     xi, eta = r.ravel(), ((1-r)*s).ravel()
     bary = np.column_stack((1-xi-eta, xi, eta))
+    # On inclut le jacobien 1-r de la transformation du carré vers le triangle.
     return bary, (wr*ws*(1-r)).ravel()
 
 def _exact_fields(points, k, exact_function=None, exact_gradient=None):
+    """On évalue la solution exacte et son gradient aux points donnés."""
     value = np.exp(1j*k*points[..., 0]) if exact_function is None else exact_function(points)
     gradient = np.zeros(points.shape, dtype=complex)
     if exact_gradient is None:
@@ -183,8 +189,8 @@ def _exact_fields(points, k, exact_function=None, exact_gradient=None):
         gradient = exact_gradient(points)
     return value, gradient
 
-# Réponse FEM Q1/Q2 — Intégration de l'erreur continue et de son gradient, pas de I_h(e).
 def integrate_errors(geometry, u_approx, k, order=6, exact_function=None, exact_gradient=None):
+    """Q1/Q2 : on intègre les erreurs L² et H¹ et on mesure les écarts d’amplitude et de phase."""
     bary, weights = triangle_quadrature(order)
     tris, q, areas, gradients = (geometry[name] for name in ("triangles", "points", "areas", "gradients"))
     u = np.asarray(u_approx, dtype=complex).reshape(-1)
@@ -192,6 +198,7 @@ def integrate_errors(geometry, u_approx, k, order=6, exact_function=None, exact_
         raise ValueError("Vecteur FEM invalide.")
     l2_squared = h1_squared = interpolation_squared = interpolation_gradient_squared = 0.0
     amplitude_max = phase_max = 0.0
+    # On traite les triangles par blocs pour limiter la taille des tableaux temporaires.
     for start in range(0, len(tris), 512):
         sl = slice(start, start+512)
         points = np.einsum("qi,eia->eqa", bary, q[sl])
@@ -209,7 +216,7 @@ def integrate_errors(geometry, u_approx, k, order=6, exact_function=None, exact_
         interpolation_gradient_squared += np.sum(jac_weights*np.sum(np.abs(exact_grad-interpolation_grad[:, None, :])**2, axis=2))
         if exact_function is None:
             amplitude_max = max(amplitude_max, float(np.max(np.abs(np.abs(approx)-1))))
-            # Phase principale relative ; pas une constante de dispersion universelle.
+            # On mesure la phase relative principale entre -π et π.
             if np.min(np.abs(approx)) < 1e-12:
                 raise ValueError("Phase indéfinie : amplitude quasi nulle.")
             phase_max = max(phase_max, float(np.max(np.abs(np.angle(approx*np.conj(exact))))))
@@ -220,7 +227,7 @@ def integrate_errors(geometry, u_approx, k, order=6, exact_function=None, exact_
             "amplitude_error_sampled": amplitude_max, "phase_error_sampled": phase_max}
 
 def sample_supremum(geometry, u_approx, k, subdivisions, exact_function=None):
-    """Maximum sur une grille barycentrique comprenant les sommets et les arêtes."""
+    """Q1/Q2 : on estime le maximum de l’erreur sur une grille de chaque triangle."""
     if not isinstance(subdivisions, (int, np.integer)) or subdivisions < 1:
         raise ValueError("Nombre de subdivisions entier positif requis.")
     bary = np.array([(i/subdivisions, j/subdivisions, 1-(i+j)/subdivisions)
@@ -238,20 +245,21 @@ def sample_supremum(geometry, u_approx, k, subdivisions, exact_function=None):
 
 def compute_norms(node_coords, p_elem2nodes, elem2nodes, u_approx, wavenumber,
                   quadrature_order=6, sample_subdivisions=16):
-    """API corrigée : la géométrie est indispensable aux normes L² et H¹."""
+    """Q1/Q2 : on renvoie le maximum estimé et les normes continues L² et H¹."""
     geometry = prepare_geometry(node_coords, p_elem2nodes, elem2nodes)
     errors = integrate_errors(geometry, u_approx, wavenumber, quadrature_order)
     infinity = sample_supremum(geometry, u_approx, wavenumber, sample_subdivisions)
     return infinity, errors["err_l2"], errors["err_h1"]
 
 def evaluate_errors(geometry, u, exact_nodes, k):
+    """Q1/Q2 : on contrôle la quadrature et on raffine l’échantillonnage du maximum."""
     errors = integrate_errors(geometry, u, k, order=6)
     refined = integrate_errors(geometry, u, k, order=8)
     delta = max(abs(refined[name]-errors[name])/max(refined[name], 1e-15)
                 for name in ("err_l2", "err_h1", "interpolation_l2", "interpolation_h1"))
     if delta > 1e-7:
         raise ValueError("La quadrature 6/8 n'est pas convergée : augmenter son ordre.")
-    # Comparaison de grilles imbriquées ; maximum estimé, jamais présenté comme exact.
+    # On compare les maxima de grilles imbriquées jusqu'à stabilisation à 0,5 %.
     previous = sample_supremum(geometry, u, k, 8)
     for subdivisions in (16, 32, 64):
         current = sample_supremum(geometry, u, k, subdivisions)
@@ -267,16 +275,18 @@ def evaluate_errors(geometry, u, exact_nodes, k):
     return errors
 
 def nearest_spectral_gap(K, M, interior, k):
-    """Cours 6 : distance à une valeur propre du problème généralisé intérieur."""
-    if len(interior) < 2:
-        return float("nan")
+    """Q1/Q2 : on calcule la distance de k² à la valeur propre intérieure la plus proche."""
+    if len(interior) == 0:
+        return None
     Kii, Mii = K[interior][:, interior], M[interior][:, interior]
+    if len(interior) == 1:
+        return float(abs(Kii[0, 0]/Mii[0, 0]-k*k))
     nearest = spla.eigsh(Kii, M=Mii, k=1, sigma=k*k, which="LM", return_eigenvectors=False,
                          v0=np.random.default_rng(0).standard_normal(len(interior)), tol=1e-9)[0]
     return float(abs(nearest-k*k))
 
-# Réponse FEM Q1 — Étude régulière ; FEM Q2 utilise exactement le même protocole.
 def run_convergence_study(shifted=False, nx_values=DEFAULT_NX, k_values=DEFAULT_K):
+    """Q1/Q2 : on calcule les erreurs sur les différentes résolutions et fréquences."""
     results = []
     for nx in nx_values:
         if not isinstance(nx, (int, np.integer)) or nx < 4 or nx % 4:
@@ -284,12 +294,12 @@ def run_convergence_study(shifted=False, nx_values=DEFAULT_NX, k_values=DEFAULT_
         ny = nx//4
         mesh = generate_fractal_boundary_mesh(0, 1, 0, 1, nx, ny, level=0)
         xy, p, conn = mesh
-        # Réponse FEM Q2 — Déplacement déterministe construit une seule fois par résolution.
+        # Q2 : on construit le déplacement une seule fois pour chaque résolution.
         if shifted:
             xy = shift_internal_nodes(xy, p, conn, direction=SHIFT_DIRECTION, magnitude=SHIFT_MAGNITUDE)
         frozen_coordinates = xy.copy()
         geo = prepare_geometry(xy, p, conn)
-        assembled = fem_assembly(p, conn, xy, geometry=geo)  # K et M réutilisées pour tous les k.
+        assembled = fem_assembly(p, conn, xy, geometry=geo)  # On réutilise K et M pour tous les k.
         quality = mesh_statistics(xy, p, conn)
         for k in k_values:
             u, exact, diagnostics = solve_helmholtz(xy, p, conn, k, assembled, True)
@@ -309,6 +319,7 @@ def run_convergence_study(shifted=False, nx_values=DEFAULT_NX, k_values=DEFAULT_
     return results
 
 def _power_fit(x, error):
+    """On ajuste une loi C xᵖ et on calcule les pentes entre mesures successives."""
     x, error = np.asarray(x), np.asarray(error)
     if len(x) < 2 or np.any(x <= 0) or np.any(error <= 0):
         raise ValueError("Une régression logarithmique exige au moins deux mesures positives.")
@@ -317,8 +328,8 @@ def _power_fit(x, error):
     local = np.diff(np.log(error[order]))/np.diff(np.log(x[order]))
     return {"exponent": float(slope), "C": float(np.exp(intercept)), "local_slopes": local.tolist()}
 
-# Réponse FEM Q1/Q2 — Alpha à k fixé, bêta à h fixé, puis estimation conjointe.
 def fit_convergence(results):
+    """Q1/Q2 : on ajuste les exposants spatiaux, fréquentiels et conjoints des erreurs."""
     fits = {}
     h, k = np.array([r["h"] for r in results]), np.array([r["k"] for r in results])
     design = np.column_stack((np.ones(len(results)), np.log(h), np.log(k)))
@@ -344,14 +355,14 @@ def fit_convergence(results):
                       "alpha_by_k": by_k, "beta_by_nx": by_nx}
     return fits
 
-# Réponse FEM Q1/Q2 — Quatre familles de figures, chacune pour les trois normes.
 def plot_convergence(results, fits, shifted=False, output_dir=FIGURES):
+    """Q1/Q2 : on trace les erreurs selon h, k et hᵅkᵝ, ainsi que les surfaces ajustées."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     first = 9 if shifted else 5
     title = "Maillage déformé" if shifted else "Maillage régulier"
     h, k = np.array([r["h"] for r in results]), np.array([r["k"] for r in results])
-    # Erreur selon h : toutes les fréquences, droites ajustées et pentes.
+    # On trace les erreurs et les lois ajustées selon h pour chaque fréquence.
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.3))
     for ax, name, label in zip(axes, NORM_KEYS, NORM_LABELS):
         error = np.array([r[name] for r in results])
@@ -367,7 +378,7 @@ def plot_convergence(results, fits, shifted=False, output_dir=FIGURES):
     fig.tight_layout()
     fig.savefig(output_dir/f"Figure{first}.png", dpi=180)
     plt.close(fig)
-    # Erreur selon k : toutes les résolutions et leurs pentes.
+    # On trace les erreurs et les lois ajustées selon k pour chaque résolution.
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.3))
     for ax, name, label in zip(axes, NORM_KEYS, NORM_LABELS):
         error = np.array([r[name] for r in results])
@@ -383,7 +394,7 @@ def plot_convergence(results, fits, shifted=False, output_dir=FIGURES):
     fig.tight_layout()
     fig.savefig(output_dir/f"Figure{first+1}.png", dpi=180)
     plt.close(fig)
-    # Surface expérimentale et plan du modèle en coordonnées log10.
+    # On superpose la surface mesurée et le modèle en coordonnées logarithmiques.
     fig = plt.figure(figsize=(16, 5.5))
     h_values, k_values = np.unique(h), np.unique(k)
     H, K = np.meshgrid(h_values, k_values)
@@ -401,7 +412,7 @@ def plot_convergence(results, fits, shifted=False, output_dir=FIGURES):
     fig.subplots_adjust(left=.02, right=.94, bottom=.15, top=.85, wspace=.32)
     fig.savefig(output_dir/f"Figure{first+2}.png", dpi=180)
     plt.close(fig)
-    # Quantité demandée construite avec les exposants estimés, sans relier des cas distincts.
+    # On trace les erreurs selon hᵅkᵝ avec les exposants estimés.
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.3))
     for ax, name, label in zip(axes, NORM_KEYS, NORM_LABELS):
         fit = fits[name]
@@ -421,6 +432,7 @@ def plot_convergence(results, fits, shifted=False, output_dir=FIGURES):
     plt.close(fig)
 
 def export_results(results, fits, shifted=False, checks=None):
+    """On sauvegarde les mesures, paramètres et ajustements en CSV, JSON et LaTeX."""
     DATA.mkdir(parents=True, exist_ok=True)
     name = "shifted" if shifted else "regular"
     with (DATA/f"{name}.csv").open("w", newline="", encoding="utf-8") as stream:
@@ -439,17 +451,19 @@ def export_results(results, fits, shifted=False, checks=None):
     write_report_tables(payload, name)
 
 def _latex_number(value, digits=3):
+    """On écrit un nombre en notation scientifique LaTeX."""
     mantissa, exponent = f"{value:.{digits}e}".split("e")
     return rf"\({mantissa}\times10^{{{int(exponent)}}}\)"
 
 def _latex_table(headers, rows):
+    """On construit un tableau LaTeX à partir des en-têtes et des lignes."""
     columns = "l"+"r"*(len(headers)-1)
     return (rf"\begin{{tabular}}{{{columns}}}"+"\n\\toprule\n"+" & ".join(headers)+r" \\"+
             "\n\\midrule\n"+"\n".join(" & ".join(row)+r" \\" for row in rows)+
             "\n\\bottomrule\n\\end{tabular}\n")
 
 def write_report_tables(payload, name):
-    """Les tableaux du PDF proviennent des mêmes mesures que les CSV/JSON."""
+    """On écrit les tableaux de mesures et d’ajustements au format LaTeX."""
     results, fits = payload["results"], payload["fits"]
     rows = [[rf"\({r['nx']}\times{r['ny']}\)", f"{r['k']/np.pi:g}",
              *[_latex_number(r[key]) for key in NORM_KEYS]] for r in results]
@@ -489,21 +503,22 @@ def write_report_tables(payload, name):
     headers = [r"\(k/\pi\)", "Norme"]+[rf"\({a}\to{b}\)" for a, b in zip(levels[:-1], levels[1:])]
     (DATA/f"{name}_local.tex").write_text(_latex_table(headers, rows), encoding="utf-8")
     rows = [[rf"\({r['nx']}\times{r['ny']}\)", f"{r['k']/np.pi:g}",
-             f"{r['spectral_gap']:.3f}", _latex_number(r['interpolation_l2'], 2),
+             "--" if r['spectral_gap'] is None else f"{r['spectral_gap']:.3f}",
+             _latex_number(r['interpolation_l2'], 2),
              _latex_number(r['phase_error_sampled'], 2), _latex_number(r['amplitude_error_sampled'], 2)]
             for r in results]
     (DATA/f"{name}_diagnostics.tex").write_text(_latex_table(
         ["Maillage", r"\(k/\pi\)", r"\(\delta_h\)", r"\(\|u^*-I_hu^*\|_{L^2}\)", "Phase (rad)", "Amplitude"], rows), encoding="utf-8")
 
-# Réponse FEM Q2 — Fonction de diamètre moyen, également utilisée pour Q1.
 def compute_average_h(node_coords, p_elem2nodes, elem2nodes):
+    """Q1/Q2 : on calcule la moyenne des diamètres des triangles."""
     _, _, lengths, _ = triangle_geometry(node_coords, p_elem2nodes, elem2nodes)
     if len(lengths) == 0:
         raise ValueError("Le diamètre moyen d'un maillage vide n'est pas défini.")
     return float(lengths.max(axis=1).mean())
 
 def check_fem_implementation():
-    """Matrices analytiques, affine exacte, vrais gradients, bord, quadrature et régression."""
+    """On vérifie les matrices, les solutions de contrôle, les normes et les ajustements."""
     xy = np.array([[0., 0.], [1., 0.], [0., 1.]])
     Ke = get_trifem_elementary_stiffness(xy, .5)
     Me = get_trifem_elementary_mass(xy, .5)
@@ -524,6 +539,12 @@ def check_fem_implementation():
     np.testing.assert_allclose(u, affine, atol=2e-13)
     A, rhs = apply_dirichlet_condition(boundary, affine[boundary], K, F)
     np.testing.assert_allclose(spla.spsolve(A, rhs), affine, atol=2e-13)
+    # On vérifie les cas où le spectre intérieur contient zéro ou une valeur propre.
+    assert nearest_spectral_gap(K, M, np.array([], dtype=int), 0) is None
+    interior = np.setdiff1d(np.arange(len(mesh[0])), boundary)
+    single = interior[:1]
+    np.testing.assert_allclose(nearest_spectral_gap(K, M, single, 1),
+                               abs(K[single[0], single[0]]/M[single[0], single[0]]-1))
     const = lambda q: np.ones(q.shape[:-1], dtype=complex)
     zero_grad = lambda q: np.zeros(q.shape, dtype=complex)
     errors = integrate_errors(geo, np.zeros(len(u)), 0, exact_function=const, exact_gradient=zero_grad)
@@ -546,7 +567,7 @@ def check_fem_implementation():
                  for nx, h in [(16, .1), (32, .05), (64, .025)] for k in (1., 2., 3.)]
     for fit in fit_convergence(synthetic).values():
         np.testing.assert_allclose([fit["C"], fit["alpha"], fit["beta"], fit["r2_log"]], [2, 1.7, 2.3, 1], atol=1e-12)
-    # Q2 : le même déplacement et le même système produisent la même solution.
+    # Q2 : on vérifie que deux résolutions du même système donnent la même solution.
     shifted = (shift_internal_nodes(*mesh), mesh[1], mesh[2])
     first, _ = solve_helmholtz(*shifted, np.pi)
     second, _ = solve_helmholtz(*shifted, np.pi)
@@ -557,6 +578,7 @@ def check_fem_implementation():
             "checks": "matrices, affine, normes continues, quadrature, Dirichlet, résidu, ajustement conjoint, reproductibilité"}
 
 def main(shifted=False):
+    """On lance les vérifications et l’étude FEM, puis on sauvegarde les résultats."""
     parser = argparse.ArgumentParser(description="FEM Q2" if shifted else "FEM Q1")
     parser.add_argument("--check-only", action="store_true")
     parser.add_argument("--nx", nargs="+", type=int, default=list(DEFAULT_NX))

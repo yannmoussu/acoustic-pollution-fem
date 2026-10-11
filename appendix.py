@@ -1,8 +1,4 @@
-"""Comparaisons pédagogiques pour Q1/Q2 FEM ; mêmes matrices et onde de référence.
-
-Les alternatives évaluées sont des comparaisons nouvelles, pas un historique
-supposé de tentatives. Aucun calcul dense de grande taille n'est effectué.
-"""
+"""On calcule les comparaisons et les vérifications numériques complémentaires."""
 import csv
 import json
 from pathlib import Path
@@ -17,7 +13,7 @@ ROOT = Path(__file__).resolve().parent
 
 
 def compare_choices():
-    """Q1/Q2 : stockage plein/CSR et erreur nodale interpolée/continue."""
+    """Q1/Q2 FEM : on compare le stockage, les mesures d’erreur et les ordres de quadrature."""
     rows = []
     for nx in (16, 32, 64, 128):
         xy, p, conn = generate_fractal_boundary_mesh(0, 1, 0, 1, nx, nx//4, level=0)
@@ -27,6 +23,7 @@ def compare_choices():
         u, exact, diagnostics = fem.solve_helmholtz(xy, p, conn, k, (K, M, F), True)
         nodal = exact-u
         continuous = fem.integrate_errors(geo, u, k, order=8)['err_l2']
+        # On intègre l'erreur nodale interpolée avec la matrice de masse.
         interpolated = float(np.sqrt(np.vdot(nodal, M@nodal).real))
         interpolation = fem.integrate_errors(geo, exact, k, order=8)['err_l2']
         rows.append({'nx': nx, 'ny': nx//4, 'nodes': len(xy),
@@ -39,6 +36,7 @@ def compare_choices():
                      'quadrature_q2_relative': abs(fem.integrate_errors(geo, u, k, order=2)['err_l2']/continuous-1),
                      'quadrature_q3_relative': abs(fem.integrate_errors(geo, u, k, order=3)['err_l2']/continuous-1)})
         if nx == 16:
+            # On calcule le spectre complet uniquement sur le plus petit maillage.
             I = diagnostics['interior']
             spectrum = la.eigh(K[I][:,I].toarray(), M[I][:,I].toarray(), eigvals_only=True)
             spectral = {'nx': nx, 'ny': nx//4, 'lambda_min': float(spectrum[0]),
@@ -65,7 +63,7 @@ def compare_choices():
 
 
 def illustrate_checks():
-    """Q9 et contrôles FEM : figures et mesures indépendantes des calculs d'erreur."""
+    """Q9 maillage et Q1/Q2 FEM : on vérifie les opérations inverses, la solution affine et les intégrales."""
     mesh = generate_fractal_boundary_mesh(0, 1, 0, 1, 2, 2, level=0)
     removed = remove_element(*mesh, len(mesh[1])-2)
     restored = add_element(*removed, mesh[2][-3:])
@@ -121,7 +119,7 @@ def illustrate_checks():
                   ['Erreur constante : semi-norme H¹', '0', f"{errors['err_h1_semi']:.2e}"],
                   ['Somme des poids sur le triangle', '0,5', f"{weights.sum():.12f}"],
                   ['Intégrale de chaque coordonnée barycentrique', '1/6', f"{(weights@bary)[0]:.12f}"]]
-    # Tableau compact, produit directement à partir des mesures.
+    # On écrit les valeurs attendues et mesurées dans le tableau LaTeX.
     tex = ['\\begin{tabular}{p{7cm}rr}', '\\toprule', ' & '.join(headers)+r' \\', '\\midrule']
     tex += [' & '.join(row)+r' \\' for row in table_rows]
     tex += ['\\bottomrule', '\\end{tabular}']
@@ -140,7 +138,7 @@ def illustrate_checks():
 
 
 def illustrate_result_tables():
-    """Réponse Q1/Q2 FEM : illustrer les tableaux à partir des résultats sauvegardés."""
+    """Q1/Q2 FEM : on trace les exposants ajustés et les rapports d’erreur des deux maillages."""
     datasets = {family: json.loads((ROOT/f'report/data/{family}.json').read_text())
                 for family in ('regular', 'shifted')}
     norms = [('err_inf', r'$L^\infty$ estimée'), ('err_l2', r'$L^2$'),
@@ -167,7 +165,7 @@ def illustrate_result_tables():
         fig.savefig(ROOT/f'report/figures/{family}_exponents.png', dpi=180)
         plt.close(fig)
 
-    # Même résolution et même fréquence : isoler l'effet du déplacement sur l'erreur.
+    # On compare les deux erreurs à résolution et fréquence identiques.
     indexed = {family: {(r['nx'], r['k']): r for r in d['results']}
                for family, d in datasets.items()}
     fig, axes = plt.subplots(1, 3, figsize=(11, 3.4), constrained_layout=True)

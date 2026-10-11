@@ -85,7 +85,7 @@ Pour Q5, cette règle s'applique uniquement aux nœuds internes.
 \begin{itemize}
 \item Une arête appartient au bord si elle possède un seul élément incident.
 \item Les coordonnées des nœuds du bord restent exactement inchangées.
-\item Les études utilisent $d=(1,0)$ et $\mu=0,1$ ; aucune perturbation aléatoire n'est introduite.
+\item Les études utilisent $d=(1,0)$ et $\mu=0,1$, avec les mêmes coordonnées pour tous les $k$.
 \end{itemize}
 \begin{block}{Validité géométrique}
 Les signes des aires sont contrôlés après déplacement. Une amplitude qui inverse ou dégénère un élément est refusée.
@@ -257,7 +257,7 @@ Une \textbf{quadrature} remplace une intégrale par une somme $\sum w_q f(P_q)$.
 À $k=3\pi$, sur les quatre maillages réguliers, l'ordre 2 donne jusqu'à $0,558\,\%$ d'écart relatif $L^2$ par rapport à l'ordre 8. L'ordre 3 donne jusqu'à $6,58\times10^{-6}$, au-dessus du seuil $10^{-7}$ retenu.
 \end{block}
 \begin{block}{Méthode retenue : ordre 6, contrôlé à l'ordre 8}
-Sur les trois normes et les deux familles de maillages, la variation relative reste inférieure à $3\times10^{-13}$. L'ordre 6 est validé, sans être démontré minimal.
+Pour $L^2$, $H^1$ et l'interpolation des deux familles, l'écart reste inférieur à $3\times10^{-13}$. L'ordre 6 est validé, sans être démontré minimal.
 \end{block}
 La règle utilisée combine q points dans chacune de deux directions : elle évalue q² points par triangle (36 à l'ordre 6, 64 à l'ordre 8).
 \end{frame}

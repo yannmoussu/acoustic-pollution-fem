@@ -12,6 +12,7 @@ python3 -m venv .venv
 .venv/bin/python mesh_implementation.py
 .venv/bin/python fem_implementation.py
 .venv/bin/python fem_implementation_shifted.py
+.venv/bin/python appendix.py
 ```
 
 Les commandes exécutent les vérifications avant le calcul.
@@ -33,7 +34,7 @@ latexmk -pdf -interaction=nonstopmode -halt-on-error presentation.tex
 
 Les PDF et toutes leurs sources, y compris les tableaux inclus, sont fournis.
 
-L'archive contient les trois scripts, les dépendances déclarées, les données, les figures, les sources et PDF du rapport et de la présentation, le README. Elle exclut `.venv`, `.git`, les caches, les auxiliaires LaTeX et les diapositives du professeur. Les références pédagogiques restent identifiées dans le rapport.
+L'archive contient les trois scripts principaux et `appendix.py`, les dépendances déclarées, les données, les figures, les sources et PDF du rapport et de la présentation, le README. Elle exclut `.venv`, `.git`, les caches, les auxiliaires LaTeX et les diapositives du professeur. Les références pédagogiques restent identifiées dans le rapport.
 
 ## Conventions et correspondance aux questions
 
@@ -42,7 +43,7 @@ L'archive contient les trois scripts, les dépendances déclarées, les données
 - Les énoncés FEM n'ont pas de sous-questions officiellement lettrées : les commentaires utilisent les intitulés des demandes.
 - Géométrie plane, indices entiers commençant à zéro, connectivité à pseudo-pointeurs ; triangles et quadrangles ordonnés et non dégénérés. Le solveur exige des triangles orientés positivement.
 - Rapport d'aspect : `(sqrt(3)/6)*h_max/rho`. Facteur d'arête : minimum/moyenne arithmétique ; l'option `convention="median"` permet la longueur intermédiaire si une précision du professeur l'exige.
-- Frontière Q10 : construction fractale auto-affine à motif polygonal antisymétrique ; rapport vertical 0,6, niveau entier indépendant de la résolution. Pour un niveau positif, nx doit être multiple de 2**(niveau+1). La borne amplitude/(1-0,6) reste inférieure à la hauteur. Aire constante à chaque niveau, démontrée et vérifiée.
+- Frontière Q10 : construction fractale auto-affine à motif polygonal antisymétrique ; rapport vertical 0,6, niveau entier indépendant de la résolution. Pour un niveau positif, nx doit être multiple de 2**(niveau+1). La borne amplitude/(1-0,6) reste inférieure à la hauteur. L'aire constante est vérifiée numériquement à chaque niveau.
 - Déplacement interne : direction `(1,0)`, amplitude relative `0.1`, mêmes paramètres et coordonnées pour tous les k d'une résolution.
 - `h` : diamètre moyen des triangles, différent de `1/nx`. `h_max` est exporté séparément.
 - L² et H¹ : erreurs **continues intégrées**, avec quadrature d'ordre 6 contrôlée à l'ordre 8 ; la semi-norme H¹ est aussi exportée.
@@ -50,7 +51,7 @@ L'archive contient les trois scripts, les dépendances déclarées, les données
 - Matrices K/M assemblées une seule fois par géométrie en COO/CSR ; factorisation de `K-k²M` sur les inconnues intérieures ; résidu exigé inférieur à `1e-9`.
 - Les régressions séparées et conjointes sont empiriques. L'erreur maximale du modèle est publiée avec R² ; les puissances ne sont pas imposées à 2 et 3.
 
-`compute_norms` a une signature corrigée : `(node_coords, p_elem2nodes, elem2nodes, u_approx, wavenumber, ...)`. Les seuls vecteurs nodaux et un h global ne suffisent pas à intégrer les normes demandées. Les vecteurs FEM sont complexes de forme `(n,)`. `get_boundary_mesh` renvoie un `BoundaryMesh` avec coordonnées, pseudo-pointeurs, connectivité locale, `l2g` et éléments adjacents. `remove_node` renvoie les trois tableaux et refuse un nœud encore référencé.
+`compute_norms(node_coords, p_elem2nodes, elem2nodes, u_approx, wavenumber, ...)` calcule les normes à partir de la géométrie et des valeurs nodales. Les vecteurs FEM sont complexes de forme `(n,)`. `get_boundary_mesh` renvoie un `BoundaryMesh` avec coordonnées, pseudo-pointeurs, connectivité locale, `l2g` et éléments adjacents. `remove_node` renvoie les trois tableaux et refuse un nœud encore référencé.
 
 ## Format de chargement
 
@@ -81,12 +82,12 @@ Les versions utilisées sont NumPy 2.5.3, SciPy 1.18.1 et Matplotlib 3.11.2. Les
 
 ## Comparaison des choix numériques
 
-`.venv/bin/python compare_choices.py` reproduit les comparaisons complémentaires du rapport : stockage théorique plein et tableaux CSR de K/M, erreur continue et norme nodale de masse, quadratures d’ordres 2/3/8. Le spectre généralisé est calculé en dense uniquement sur le petit maillage 16×4 pour vérifier l’indéfinitude. Les résultats sont exportés dans `report/data/choices.csv` et `choices.json`, avec `report/figures/choices.png`. Le stockage mesuré exclut les facteurs LU et les tableaux temporaires ; aucun gain de temps n’est déduit de cette mesure. Le livre n’étant pas fourni dans le projet, le rapprochement avec ses chapitres repose sur les thèmes indiqués ; les supports fournis restent la référence vérifiée.
+`.venv/bin/python appendix.py` reproduit les comparaisons complémentaires du rapport : stockage théorique plein et tableaux CSR de K/M, erreur continue et norme nodale de masse, quadratures d’ordres 2/3/8. Le spectre généralisé est calculé en dense uniquement sur le petit maillage 16×4 pour vérifier l’indéfinitude. Les résultats sont exportés dans `report/data/choices.csv` et `choices.json`, avec `report/figures/choices.png`. Le stockage mesuré exclut les facteurs LU et les tableaux temporaires ; aucun gain de temps n’est déduit de cette mesure. Le livre n’étant pas fourni dans le projet, le rapprochement avec ses chapitres repose sur les thèmes indiqués ; les supports fournis restent la référence vérifiée.
 
 ## Origine des fichiers
 
-Les documents pédagogiques fournis par le professeur sont les PDF des supports et des énoncés. Les maillages utilisés dans les simulations sont construits directement en Python : aucun fichier externe de nœuds ou d’éléments n’est requis. Les CSV, JSON, tableaux LaTeX et figures sont des sorties produites pour ce projet. `compare_choices.py` reproduit les comparaisons complémentaires, sans constituer un outil ou une donnée fournis par le professeur. La fonction `load_mesh` est un utilitaire facultatif, non utilisé par les simulations du devoir.
+Les documents pédagogiques fournis par le professeur sont les PDF des supports et des énoncés. Les maillages utilisés dans les simulations sont construits directement en Python : aucun fichier externe de nœuds ou d’éléments n’est requis. Les CSV, JSON, tableaux LaTeX et figures sont des sorties produites pour ce projet. `appendix.py` reproduit les comparaisons complémentaires, sans constituer un outil ou une donnée fournis par le professeur. La fonction `load_mesh` est un utilitaire facultatif, non utilisé par les simulations du devoir.
 
 Pour Q7, le barycentre est la moyenne des sommets de poids égaux (centroïde surfacique pour un triangle ou un parallélogramme). Pour Q8, le découpage est limité aux quadrangles strictement convexes à sommets ordonnés, suivant la diagonale (0,2). Les cellules concaves, croisées ou dégénérées sont refusées.
 
-Les figures `topology_checks.png` et `sampling_grids.png`, ainsi que les tableaux `verification.tex` et `quadrature_checks.tex`, sont générés par `compare_choices.py`. `verification.json` conserve les mesures des contrôles. La construction de la frontière pour Q10 est un choix du projet, sans formule imposée par les supports.
+Les figures `topology_checks.png` et `sampling_grids.png`, ainsi que les tableaux `verification.tex` et `quadrature_checks.tex`, sont générés par `appendix.py`. Ce script lit aussi `regular.json` et `shifted.json` pour tracer les exposants et les rapports d'erreur ; il s'exécute après les deux études FEM. `verification.json` conserve les mesures des contrôles. La construction de la frontière pour Q10 est un choix du projet, sans formule imposée par les supports.

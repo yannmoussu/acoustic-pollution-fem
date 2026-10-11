@@ -72,7 +72,7 @@ a_T=\frac12\det(P_1-P_0,P_2-P_0),\qquad |T|=|a_T|.
 \end{equation*}
 Le calcul utilise des différences de coordonnées pour éviter de soustraire de grands produits proches. Le contrôle sur un triangle translaté de $10^9$ retrouve l'aire $0,5$ ; son résultat figure dans le tableau de vérification. Pour les polygones, une somme de produits vectoriels fournit l'aire. Le calcul de la valeur absolue ne suffit pas à vérifier un maillage : une aire négative signale une inversion et une aire quasi nulle une dégénérescence.
 
-Les calculs en double précision arrondissent les nombres : $\varepsilon_{\rm mach}\simeq2,22\times10^{-16}$ mesure cette précision relative. Une aire est considérée comme numériquement nulle si elle est inférieure à $64\varepsilon_{\rm mach}\ell_T^2$, où $\ell_T$ est la plus grande étendue du triangle suivant les axes. Le facteur 64 est une marge de sécurité du code, pas une constante du cours. Ce seuil suit l'échelle de l'aire lorsque le maillage est raffiné.
+Les calculs en double précision arrondissent les nombres : $\varepsilon_{\rm mach}\simeq2,22\times10^{-16}$ mesure cette précision relative. Une aire est considérée comme numériquement nulle si sa valeur absolue est inférieure ou égale à $64\varepsilon_{\rm mach}(\Delta x_T^2+\Delta y_T^2)$, où $\Delta x_T$ et $\Delta y_T$ sont les étendues du triangle suivant les deux axes. Le facteur 64 est une marge de sécurité du code, pas une constante du cours. Ce seuil suit l'échelle de l'aire lorsque le maillage est raffiné.
 
 \subsection{Rapport d'aspect}
 Cette partie traite la question Q2.
@@ -501,12 +501,14 @@ Le nombre de fréquences reste faible. L'onde ne varie pas selon $y$ alors que $
 
 Les choix retenus reposent sur les structures de maillage, l'approximation $P_1$, l'assemblage creux et les principes de résolution présentés dans les supports du cours. Les premières approches présentées sont évaluées avec le code pour expliquer les choix, sans prétendre à une optimalité universelle.
 
+\newpage
 \section*{Conclusion}
 Les fonctions de maillage répondent aux dix questions obligatoires et à l'extraction facultative de frontière, avec les pseudo-pointeurs du cours. La frontière fractale répond à la construction demandée, son aire est vérifiée à chaque niveau, et les cas sous-échantillonnés ou dégénérés sont refusés. Le déplacement interne est déterministe et conserve les coordonnées du bord.
 
 Les études FEM répondent aux demandes de Q1 et Q2 pour les trois normes, avec calcul des pentes séparées, des exposants conjoints, des surfaces et de la quantité combinée. Les erreurs $L^2$ et $H^1$ sont celles de l'erreur continue intégrée, et le maximum intérieur reste explicitement estimé. À $k=\pi$, les ordres mesurés sont proches de 2 en $L^2$ et de 1 en $H^1$. La déformation augmente certaines erreurs, surtout sur les maillages grossiers, mais les tendances de raffinement sont préservées dans les cas étudiés.
 
 Les résidus, la quadrature et les tests analytiques étayent la fiabilité des calculs présentés. Les variations fréquentielles, les erreurs de phase et les écarts du modèle conjoint imposent néanmoins une analyse prudente : ces expériences vérifient un problème précis et ne démontrent pas une loi universelle de pollution ou une indépendance générale vis-à-vis de la qualité du maillage.
+\newpage
 \par
 \begingroup
 \let\section\subsubsection

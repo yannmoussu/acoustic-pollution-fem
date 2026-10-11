@@ -1,9 +1,4 @@
-"""Partie 1 : réponses Maillage Q1 à Q11, tableaux à pseudo-pointeurs du cours.
-
-Dépendances scientifiques : NumPy et Matplotlib uniquement. Les coordonnées sont
-réelles (n, 2), les indices entiers commencent à zéro, les cellules sont des
-triangles ou quadrangles simples dont les sommets sont ordonnés sur le contour.
-"""
+"""On construit, déforme et analyse les maillages plans à triangles ou quadrangles."""
 from pathlib import Path
 from typing import NamedTuple
 import argparse
@@ -22,7 +17,7 @@ DATA = ROOT / "report" / "data"
 
 
 def validate_connectivity(node_coords, p_elem2nodes, elem2nodes):
-    """Invariants de la structure du cours (support 4, pages 6–11)."""
+    """On vérifie les coordonnées, les indices et les pseudo-pointeurs."""
     xy = np.asarray(node_coords, dtype=float)
     p, conn = np.asarray(p_elem2nodes), np.asarray(elem2nodes)
     if xy.ndim != 2 or xy.shape[1] != 2 or not np.isfinite(xy).all():
@@ -43,19 +38,22 @@ def validate_connectivity(node_coords, p_elem2nodes, elem2nodes):
     return xy, p.astype(np.int64, copy=False), conn.astype(np.int64, copy=False)
 
 def _cross(a, b):
+    """On calcule le déterminant de deux vecteurs plans."""
     return a[..., 0] * b[..., 1] - a[..., 1] * b[..., 0]
 
 def _area_tolerance(points):
+    """On adapte le seuil d’aire nulle à l’étendue de l’élément."""
     span = np.ptp(points, axis=0)
     return 64 * np.finfo(float).eps * max(float(span @ span), np.finfo(float).tiny)
 
 def _signed_polygon_area(points):
-    # Translation avant le produit vectoriel : évite la cancellation loin de l'origine.
+    """Q1 : on calcule l’aire signée d’un polygone à sommets ordonnés."""
+    # On recentre les points pour éviter la soustraction de grands produits proches.
     q = points - points[0]
     return 0.5 * np.sum(_cross(q, np.roll(q, -1, axis=0)))
 
 def _quad_triangles(points):
-    """Q8 : diagonale (0,2) d'un quadrangle strictement convexe et ordonné."""
+    """Q8 : on vérifie la convexité et on choisit la diagonale (0, 2)."""
     edges = np.roll(points, -1, axis=0)-points
     turns = _cross(edges, np.roll(edges, -1, axis=0))
     tol = _area_tolerance(points)
@@ -64,6 +62,7 @@ def _quad_triangles(points):
     return ((0, 1, 2), (0, 2, 3))
 
 def validate_geometry(node_coords, p_elem2nodes, elem2nodes, positive=True):
+    """On vérifie les aires, les orientations et la convexité des quadrangles."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     signed = compute_signed_areas(xy, p, conn)
     for e, (a, b) in enumerate(zip(p[:-1], p[1:])):
@@ -77,7 +76,7 @@ def validate_geometry(node_coords, p_elem2nodes, elem2nodes, positive=True):
     return signed
 
 def triangle_geometry(node_coords, p_elem2nodes, elem2nodes):
-    """Géométrie vectorisée après validation du type triangulaire."""
+    """On regroupe les sommets, les longueurs d’arête et les aires signées."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     if np.any(np.diff(p) != 3):
         raise ValueError("Cette opération exige un maillage triangulaire.")
@@ -88,7 +87,7 @@ def triangle_geometry(node_coords, p_elem2nodes, elem2nodes):
     return tris, q, lengths, signed
 
 def load_mesh(nodes_file, elements_file):
-    """Convertit les identifiants explicites des fichiers en indices locaux zéro-based."""
+    """On lit les fichiers de nœuds et d’éléments et on renumérote leurs identifiants."""
     nodes = np.loadtxt(nodes_file, ndmin=2)
     elements = np.loadtxt(elements_file, ndmin=2)
     if nodes.shape[1] != 3 or elements.shape[1] not in (4, 5):
@@ -109,8 +108,8 @@ def load_mesh(nodes_file, elements_file):
     validate_geometry(*result)
     return result
 
-# Réponse Maillage Q1 — Aire par élément ; contrôle distinct de l'orientation.
 def compute_signed_areas(node_coords, p_elem2nodes, elem2nodes):
+    """Q1 : on calcule l’aire signée de chaque triangle ou quadrangle."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     if np.all(np.diff(p) == 3):
         q = xy[conn.reshape(-1, 3)]
@@ -118,19 +117,19 @@ def compute_signed_areas(node_coords, p_elem2nodes, elem2nodes):
     return np.array([_signed_polygon_area(xy[conn[a:b]]) for a, b in zip(p[:-1], p[1:])])
 
 def compute_areas(node_coords, p_elem2nodes, elem2nodes):
-    """Aires positives des triangles/quadrangles ; l'orientation reste accessible."""
+    """Q1 : on renvoie la valeur absolue des aires signées."""
     return np.abs(compute_signed_areas(node_coords, p_elem2nodes, elem2nodes))
 
-# Réponse Maillage Q2 — Q=(sqrt(3)/6)*h_max/rho (cours 3, page 75).
 def compute_aspect_ratios(node_coords, p_elem2nodes, elem2nodes):
+    """Q2 : on calcule le rapport d’aspect à partir de l’arête maximale et du rayon inscrit."""
     _, _, lengths, signed = triangle_geometry(node_coords, p_elem2nodes, elem2nodes)
     rho = np.divide(np.abs(signed), lengths.sum(axis=1)/2,
                     out=np.zeros(len(signed)), where=lengths.sum(axis=1) > 0)
     return np.divide(np.sqrt(3)/6 * lengths.max(axis=1), rho,
                      out=np.full(len(signed), np.inf), where=rho > 0)
 
-# Réponse Maillage Q3 — « medium » : moyenne arithmétique par défaut, documentée.
 def compute_edge_length_factors(node_coords, p_elem2nodes, elem2nodes, convention="mean"):
+    """Q3 : on rapporte l’arête minimale à la moyenne ou à la médiane des longueurs."""
     _, _, lengths, _ = triangle_geometry(node_coords, p_elem2nodes, elem2nodes)
     if convention not in ("mean", "median"):
         raise ValueError("La convention doit être 'mean' ou 'median'.")
@@ -138,8 +137,8 @@ def compute_edge_length_factors(node_coords, p_elem2nodes, elem2nodes, conventio
     return np.divide(lengths.min(axis=1), denominator,
                      out=np.zeros(len(lengths)), where=denominator > 0)
 
-# Réponse Maillage Q4 — Déplacement proportionnel aux longueurs locales.
 def _shift(node_coords, p_elem2nodes, elem2nodes, direction, magnitude, fixed):
+    """Q4/Q5 : on déplace les nœuds selon leur longueur locale et on conserve les nœuds fixés."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     old_signed = validate_geometry(xy, p, conn, positive=False)
     direction = np.asarray(direction, dtype=float)
@@ -156,6 +155,7 @@ def _shift(node_coords, p_elem2nodes, elem2nodes, direction, magnitude, fixed):
         np.add.at(scale, ids, length)
         np.add.at(count, ids, 1)
     local = np.divide(scale, count, out=np.zeros_like(scale), where=count > 0)
+    # On moyenne les longueurs des éléments incidents à chaque nœud.
     result = xy + magnitude*local[:, None]*direction
     result[fixed] = xy[fixed]
     new_signed = validate_geometry(result, p, conn, positive=False)
@@ -164,29 +164,32 @@ def _shift(node_coords, p_elem2nodes, elem2nodes, direction, magnitude, fixed):
     return result
 
 def shift_nodes(node_coords, p_elem2nodes, elem2nodes, direction=(1., 0.), magnitude=0.1):
+    """Q4 : on applique le déplacement à tous les nœuds non isolés."""
     return _shift(node_coords, p_elem2nodes, elem2nodes, direction, magnitude, [])
 
-# Réponse Maillage Q5 — Frontière topologique fixe, y compris sur bord irrégulier.
 def shift_internal_nodes(node_coords, p_elem2nodes, elem2nodes, boundary_nodes=None,
                          direction=(1., 0.), magnitude=0.1):
+    """Q5 : on déplace uniquement les nœuds internes."""
     actual = get_boundary_mesh(node_coords, p_elem2nodes, elem2nodes).l2g
     if boundary_nodes is not None and not np.array_equal(np.unique(boundary_nodes), actual):
         raise ValueError("La liste fournie ne correspond pas à la frontière topologique.")
     return _shift(node_coords, p_elem2nodes, elem2nodes, direction, magnitude, actual)
 
 def compute_angles(node_coords, p_elem2nodes, elem2nodes):
-    """Complément Q6 : angles intérieurs des triangles, en radians."""
+    """Q6 : on calcule les trois angles de chaque triangle en radians."""
     _, q, _, _ = triangle_geometry(node_coords, p_elem2nodes, elem2nodes)
     a, b = np.roll(q, -1, axis=1)-q, np.roll(q, 1, axis=1)-q
     den = np.linalg.norm(a, axis=2)*np.linalg.norm(b, axis=2)
     cosines = np.divide(np.sum(a*b, axis=2), den, out=np.ones_like(den), where=den > 0)
+    # On borne les cosinus pour absorber les petits écarts d'arrondi.
     return np.arccos(np.clip(cosines, -1, 1))
 
 def compute_pointedness(node_coords, p_elem2nodes, elem2nodes):
-    """Indicateur complémentaire : cosinus du plus petit angle, hors critères Q2/Q3."""
+    """Q6 : on calcule le cosinus du plus petit angle de chaque triangle."""
     return np.cos(compute_angles(node_coords, p_elem2nodes, elem2nodes).min(axis=1))
 
 def mesh_statistics(node_coords, p_elem2nodes, elem2nodes):
+    """Q6 : on rassemble les aires, diamètres et extrema des critères géométriques."""
     signed = validate_geometry(node_coords, p_elem2nodes, elem2nodes)
     _, _, lengths, _ = triangle_geometry(node_coords, p_elem2nodes, elem2nodes)
     angles = compute_angles(node_coords, p_elem2nodes, elem2nodes)
@@ -198,8 +201,8 @@ def mesh_statistics(node_coords, p_elem2nodes, elem2nodes):
             "angle_min_deg": float(np.rad2deg(angles.min())),
             "angle_max_deg": float(np.rad2deg(angles.max())), "invalid_elements": 0}
 
-# Réponse Maillage Q6 — Histogrammes comparés et statistiques exportées.
 def plot_mesh_analysis(node_coords, p_elem2nodes, elem2nodes, output_dir=FIGURES):
+    """Q6 : on trace les maillages et les histogrammes avant et après déplacement."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     base = (node_coords, p_elem2nodes, elem2nodes)
@@ -210,6 +213,7 @@ def plot_mesh_analysis(node_coords, p_elem2nodes, elem2nodes, output_dir=FIGURES
     for number, (function, label) in enumerate(zip(functions, labels), 1):
         values = [function(*mesh) for mesh in (base, shifted)]
         finite = np.concatenate([v[np.isfinite(v)] for v in values])
+        # On utilise les mêmes classes pour les deux histogrammes.
         bins = np.histogram_bin_edges(finite, bins=20)
         fig, ax = plt.subplots(figsize=(7, 4))
         for v, name in zip(values, ["Frontière irrégulière", "Après déplacement interne"]):
@@ -228,8 +232,8 @@ def plot_mesh_analysis(node_coords, p_elem2nodes, elem2nodes, output_dir=FIGURES
     plt.close(fig)
     return {"before": mesh_statistics(*base), "after": mesh_statistics(*shifted)}
 
-# Réponse Maillage Q7 — Barycentre des sommets, de poids égaux.
 def compute_barycenter(node_coords, p_elem2nodes, elem2nodes, elemid):
+    """Q7 : on calcule la moyenne des coordonnées des sommets d’un élément."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     if not isinstance(elemid, (int, np.integer)) or not 0 <= elemid < len(p)-1:
         raise ValueError("Indice d'élément invalide.")
@@ -240,8 +244,8 @@ def compute_barycenter(node_coords, p_elem2nodes, elem2nodes, elemid):
         raise ValueError("Barycentre non traité pour un élément dégénéré.")
     return q.mean(axis=0)
 
-# Réponse Maillage Q8 — Découpage contrôlé, triangles conservés dans un maillage mixte.
 def split_quads_to_tris(node_coords, p_elem2nodes, elem2nodes):
+    """Q8 : on découpe les quadrangles convexes et on conserve les triangles existants."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     validate_geometry(xy, p, conn, positive=False)
     output = []
@@ -255,8 +259,8 @@ def split_quads_to_tris(node_coords, p_elem2nodes, elem2nodes):
     new_conn = np.array(output, dtype=np.int64)
     return xy.copy(), np.arange(0, len(new_conn)+1, 3, dtype=np.int64), new_conn
 
-# Réponse Maillage Q9(i) — Ajout d'un élément et mise à jour des pseudo-pointeurs.
 def add_element(node_coords, p_elem2nodes, elem2nodes, new_elem_nodes):
+    """Q9(i) : on ajoute un élément à la connectivité et aux pseudo-pointeurs."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     ids = np.asarray(new_elem_nodes)
     if ids.ndim != 1 or ids.dtype.kind not in "iu" or ids.size not in (3, 4):
@@ -266,29 +270,30 @@ def add_element(node_coords, p_elem2nodes, elem2nodes, new_elem_nodes):
         raise ValueError("Cet élément existe déjà.")
     result = (xy.copy(), np.append(p, p[-1]+len(ids)), np.append(conn, ids))
     validate_geometry(*result)
-    get_boundary_mesh(*result)  # Incidence et orientations des arêtes.
+    get_boundary_mesh(*result)  # On vérifie les incidences et les orientations des arêtes.
     return result
 
-# Réponse Maillage Q9(ii) — Suppression, décalage des pointeurs suivants.
 def remove_element(node_coords, p_elem2nodes, elem2nodes, elemid):
+    """Q9(ii) : on retire un élément et on décale les pseudo-pointeurs suivants."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     if not isinstance(elemid, (int, np.integer)) or not 0 <= elemid < len(p)-1:
         raise ValueError("Indice d'élément invalide.")
     a, b = p[elemid:elemid+2]
     new_p = np.delete(p, elemid+1)
+    # On retire la longueur de la tranche supprimée aux pointeurs suivants.
     new_p[elemid+1:] -= b-a
     return xy.copy(), new_p, np.delete(conn, np.s_[a:b])
 
-# Réponse Maillage Q9(iii) — Ajout d'un nœud isolé, sans retriangulation implicite.
 def add_node(node_coords, p_elem2nodes, elem2nodes, new_node_coords):
+    """Q9(iii) : on ajoute les coordonnées d’un nœud isolé."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     point = np.asarray(new_node_coords, dtype=float)
     if point.shape != (2,) or not np.isfinite(point).all():
         raise ValueError("Un nœud doit avoir deux coordonnées finies.")
     return np.vstack((xy, point)), p.copy(), conn.copy()
 
-# Réponse Maillage Q9(iv) — Suppression sûre d'un nœud isolé et renumérotation.
 def remove_node(node_coords, p_elem2nodes, elem2nodes, nodeid):
+    """Q9(iv) : on retire un nœud isolé et on renumérote les indices suivants."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     if not isinstance(nodeid, (int, np.integer)) or not 0 <= nodeid < len(xy):
         raise ValueError("Indice de nœud invalide.")
@@ -296,9 +301,9 @@ def remove_node(node_coords, p_elem2nodes, elem2nodes, nodeid):
         raise ValueError("Supprimer d'abord les éléments incidents à ce nœud.")
     return np.delete(xy, nodeid, axis=0), p.copy(), conn-(conn > nodeid)
 
-# Réponse Maillage Q10 — Frontière fractale auto-affine, niveau indépendant, aire fixe.
 def generate_fractal_boundary_mesh(xmin, xmax, ymin, ymax, nelemsx, nelemsy,
                                      level=1, amplitude=0.05, quadrangles=False):
+    """Q10 : on construit un maillage à bord fractal polygonal et à aire constante."""
     bounds = np.array([xmin, xmax, ymin, ymax, amplitude], dtype=float)
     if not np.isfinite(bounds).all() or xmax <= xmin or ymax <= ymin:
         raise ValueError("Bornes finies et domaine d'aire positive requis.")
@@ -307,8 +312,7 @@ def generate_fractal_boundary_mesh(xmin, xmax, ymin, ymax, nelemsx, nelemsy,
             raise ValueError("Les résolutions et le niveau doivent être entiers.")
     if nelemsx < 1 or nelemsy < 1 or level < 0:
         raise ValueError("Résolutions positives et niveau positif ou nul requis.")
-    # Q10 : g est polygonale ; chaque niveau réduit l'échelle horizontale
-    # par 2 et l'échelle verticale par 0.6 (construction auto-affine).
+    # On multiplie la hauteur du motif par 0,6 à chaque niveau.
     ratio = 0.6
     if amplitude < 0 or amplitude/(1-ratio) >= ymax-ymin:
         raise ValueError("La borne amplitude/(1-0.6) doit rester inférieure à la hauteur.")
@@ -321,7 +325,7 @@ def generate_fractal_boundary_mesh(xmin, xmax, ymin, ymax, nelemsx, nelemsy,
     d = np.zeros_like(t)
     for iteration in range(level):
         z = np.mod((2**iteration)*t, 1.0)
-        # Motif signé : triangle positif sur [0,1/2], négatif sur [1/2,1].
+        # On construit un motif positif sur [0, 1/2] et négatif sur [1/2, 1].
         local = np.mod(2*z, 1.0)
         tent = 1-np.abs(2*local-1)
         motif = np.where(z < .5, tent, -tent)
@@ -349,14 +353,15 @@ def generate_fractal_boundary_mesh(xmin, xmax, ymin, ymax, nelemsx, nelemsy,
     return xy, p, conn
 
 class BoundaryMesh(NamedTuple):
+    """On regroupe les segments de bord, les indices globaux et les éléments adjacents."""
     node_coords: np.ndarray
     p_elem2nodes: np.ndarray
     elem2nodes: np.ndarray
     l2g: np.ndarray
     owners: np.ndarray
 
-# Réponse Maillage Q11 (facultative) — Sous-maillage local du bord et l2g.
 def get_boundary_mesh(node_coords, p_elem2nodes, elem2nodes):
+    """Q11 : on extrait les segments de bord et leur correspondance avec les nœuds globaux."""
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     edges = {}
     for e, (a, b) in enumerate(zip(p[:-1], p[1:])):
@@ -369,6 +374,7 @@ def get_boundary_mesh(node_coords, p_elem2nodes, elem2nodes):
     for occurrences in edges.values():
         if len(occurrences) == 2 and occurrences[0][:2] == occurrences[1][:2]:
             raise ValueError("Orientations incompatibles sur une arête intérieure.")
+    # On retient les arêtes appartenant à un seul élément.
     boundary = [v[0] for v in edges.values() if len(v) == 1]
     global_edges = np.array([(i, j) for i, j, _ in boundary], dtype=np.int64).reshape(-1, 2)
     l2g = np.unique(global_edges)
@@ -379,7 +385,7 @@ def get_boundary_mesh(node_coords, p_elem2nodes, elem2nodes):
                         np.array([e for _, _, e in boundary], dtype=np.int64))
 
 def check_mesh_implementation():
-    """Vérifications discriminantes Q1–Q11, indépendantes des messages affichés."""
+    """On vérifie les critères géométriques, les déplacements et les opérations de maillage."""
     xy = np.array([[0., 0.], [1., 0.], [0., 1.]])
     p, conn = np.array([0, 3]), np.array([0, 1, 2])
     np.testing.assert_allclose(compute_areas(xy, p, conn), [0.5])
@@ -420,8 +426,7 @@ def check_mesh_implementation():
     np.testing.assert_allclose(compute_areas(*quad).sum(), compute_areas(*tri).sum())
     concave = np.array([[0., 0.], [2., 0.], [.5, .5], [0., 2.]])
     cp, cc = np.array([0, 4]), np.array([0, 1, 2, 3])
-    # Q8 : les quadrangles concaves sortent du cadre retenu et sont refusés.
-    # Q9 : enlever puis réinsérer une cellule ; nœud isolé avant et après les indices utilisés.
+    # Q9 : on retire puis réinsère un élément, puis on teste le retrait de nœuds isolés.
     removed = remove_element(*tri, 0)
     restored = add_element(*removed, tri[2][:3])
     np.testing.assert_allclose(compute_areas(*restored).sum(), 1.)
@@ -444,7 +449,7 @@ def check_mesh_implementation():
             pass
         else:
             raise AssertionError("Un cas invalide n'a pas été refusé.")
-    # Q8 : maillage mixte et maillage vide.
+    # Q8 : on vérifie le découpage d'un maillage mixte et d'un maillage vide.
     mixed = (np.array([[0., 0.], [1., 0.], [1., 1.], [0., 1.], [2., 0.]]),
              np.array([0, 4, 7]), np.array([0, 1, 2, 3, 1, 4, 2]))
     assert len(split_quads_to_tris(*mixed)[1]) == 4
@@ -459,6 +464,7 @@ def check_mesh_implementation():
     return {"status": "réussite", "checks": "Q1–Q11 : géométrie, critères, bord, déplacement, topologie, chargement"}
 
 def main():
+    """On lance les vérifications, puis on sauvegarde les mesures et les figures de maillage."""
     parser = argparse.ArgumentParser(description="Maillage : vérifications et résultats Q1–Q11.")
     parser.add_argument("--check-only", action="store_true", help="Vérifier sans régénérer les figures.")
     args = parser.parse_args()
