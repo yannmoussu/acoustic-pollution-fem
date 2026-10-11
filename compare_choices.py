@@ -139,6 +139,56 @@ def illustrate_checks():
     print(json.dumps(measures, ensure_ascii=False))
 
 
+def illustrate_result_tables():
+    """Réponse Q1/Q2 FEM : illustrer les tableaux à partir des résultats sauvegardés."""
+    datasets = {family: json.loads((ROOT/f'report/data/{family}.json').read_text())
+                for family in ('regular', 'shifted')}
+    norms = [('err_inf', r'$L^\infty$ estimée'), ('err_l2', r'$L^2$'),
+             ('err_h1', r'$H^1$')]
+    for family, dataset in datasets.items():
+        fig, axes = plt.subplots(1, 2, figsize=(10, 3.5), constrained_layout=True)
+        for key, label in norms:
+            fit = dataset['fits'][key]
+            alpha = sorted(fit['alpha_by_k'].items(), key=lambda v: float(v[0]))
+            beta = sorted(fit['beta_by_nx'].items(), key=lambda v: int(v[0]))
+            axes[0].plot([float(k)/np.pi for k, _ in alpha],
+                         [v['exponent'] for _, v in alpha], 'o-', label=label)
+            axes[1].plot([int(nx) for nx, _ in beta],
+                         [v['exponent'] for _, v in beta], 'o-', label=label)
+        axes[0].set(xlabel=r'$k/\pi$', ylabel=r'Exposant spatial $\alpha$',
+                    title='Pentes en h à fréquence fixée', xticks=[1, 2, 3], ylim=(.85, 2.2))
+        axes[1].set(xlabel=r'$n_x$', ylabel=r'Exposant fréquentiel $\beta$',
+                    title='Pentes en k à résolution fixée', ylim=(1.85, 3.55))
+        axes[1].set_xscale('log', base=2)
+        axes[1].set_xticks([16, 32, 64, 128], ['16', '32', '64', '128'])
+        for ax in axes:
+            ax.grid(alpha=.25)
+            ax.legend(fontsize=9)
+        fig.savefig(ROOT/f'report/figures/{family}_exponents.png', dpi=180)
+        plt.close(fig)
+
+    # Même résolution et même fréquence : isoler l'effet du déplacement sur l'erreur.
+    indexed = {family: {(r['nx'], r['k']): r for r in d['results']}
+               for family, d in datasets.items()}
+    fig, axes = plt.subplots(1, 3, figsize=(11, 3.4), constrained_layout=True)
+    nx_values = sorted({nx for nx, _ in indexed['regular']})
+    for ax, (key, label) in zip(axes, norms):
+        for k in sorted({k for _, k in indexed['regular']}):
+            ratio = [indexed['shifted'][nx, k][key]/indexed['regular'][nx, k][key]
+                     for nx in nx_values]
+            ax.plot(nx_values, ratio, 'o-', label=fr'$k={k/np.pi:.0f}\pi$')
+        ax.axhline(1, color='black', ls='--', lw=1, label='Erreurs égales')
+        ax.set(title=label, xlabel=r'$n_x$', ylim=(.98, 1.3))
+        ax.set_xscale('log', base=2)
+        ax.set_xticks(nx_values, [str(nx) for nx in nx_values])
+        ax.grid(alpha=.25)
+        ax.legend(fontsize=8)
+    axes[0].set_ylabel('Erreur déplacée / erreur régulière')
+    fig.savefig(ROOT/'report/figures/displacement_error_ratios.png', dpi=180)
+    plt.close(fig)
+
+
 if __name__ == '__main__':
     compare_choices()
     illustrate_checks()
+    illustrate_result_tables()

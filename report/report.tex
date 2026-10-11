@@ -413,6 +413,9 @@ Cette partie traite la question Q1.
 \resulttable{regular_alpha.tex}{Pentes globales en $h$ à fréquence fixée, quatre résolutions.}
 \resulttable{regular_beta.tex}{Pentes en $k$ à résolution fixée, trois fréquences.}
 La pente $L^2$ vaut environ 1,9745 pour $k=\pi$, mais 1,6926 pour $k=3\pi$ sur l'ensemble des quatre maillages. Une pente plus faible sur des maillages grossiers n'implique pas à elle seule une perte de l'ordre asymptotique ; les pentes locales permettent d'examiner l'effet du raffinement. À $k=3\pi$, la pente locale $L^2$ passe de 1,3748 entre les deux premiers maillages à 1,9267 entre les deux derniers ; à $k=\pi$, elle atteint 1,9959 sur le dernier raffinement. La convergence se rapproche ainsi de l'ordre 2, comme l'illustrent les courbes d'erreur en fonction du diamètre moyen. La norme $H^1$ donne des pentes entre 1,0004 et 1,0492.
+La synthèse suivante représente directement les exposants des deux tableaux. Elle montre que les pentes spatiales $L^2$ et $L^\infty$ diminuent lorsque la fréquence augmente, tandis que la pente $H^1$ reste proche de 1. Les pentes fréquentielles évoluent avec la résolution : une valeur unique de $\beta$ ne décrit donc pas tous les raffinements.
+\resultfigure{regular_exponents.png}{Lecture graphique des tableaux de pentes sur maillage régulier : exposants spatiaux à gauche, fréquentiels à droite.}{0.9}
+
 \resultfigure{Figure5.png}{Erreur selon le diamètre moyen pour les trois normes et les trois fréquences. Les traits interrompus sont les lois ajustées.}{0.9}
 
 La représentation en fonction du nombre d’onde complète les pentes fréquentielles du tableau et compare les résolutions à fréquence variable.
@@ -439,6 +442,9 @@ Sur le maillage régulier, le rapport d'aspect est constant, environ 2,7147, et 
 \resulttable{shifted_alpha.tex}{Pentes globales en $h$, diamètre moyen mesuré après déplacement.}
 \resulttable{shifted_beta.tex}{Pentes en $k$ pour chaque résolution.}
 À $k=\pi$, la pente $L^2$ globale vaut environ 2,0730 et celle de $H^1$ environ 1,0215. La pente $L^2$ légèrement supérieure à 2 sur quatre cas ne démontre pas une superconvergence générale. Le déplacement modifie les contributions locales et les transitions de régime ; les pentes locales doivent guider l'interprétation. À $k=\pi$, la pente locale $L^2$ diminue de 2,1093 à 2,0319, tandis que celle de $H^1$ passe de 1,0335 à 1,0111. À $k=3\pi$, la pente locale $L^2$ augmente de 1,4659 à 1,9449. Les courbes de convergence confirment donc une approche des ordres attendus, plutôt qu'une superconvergence persistante.
+La lecture graphique des tableaux confirme que le déplacement conserve des tendances proches de celles du maillage régulier : les pentes spatiales $H^1$ restent proches de 1 et les pentes fréquentielles de cette norme proches de 2. Les variations plus marquées en $L^2$ et $L^\infty$ restent visibles.
+\resultfigure{shifted_exponents.png}{Lecture graphique des tableaux de pentes sur maillage déplacé, avec les mêmes échelles que pour le maillage régulier.}{0.9}
+
 \resultfigure{Figure9.png}{Convergence spatiale pour les trois normes, déplacement fixe.}{0.9}
 
 La représentation en fonction du nombre d’onde complète les pentes fréquentielles du tableau et compare les résolutions à fréquence variable.
@@ -453,6 +459,9 @@ Au maillage grossier $16\times4$, $k=\pi$, l'erreur $L^2$ passe de $4,905\times1
 
 La quantité combinée permet de comparer les mesures au modèle ajusté pour chaque norme ; les écarts à une loi unique restent ceux quantifiés dans le tableau.
 \resultfigure{Figure12.png}{Erreur selon $\bar h^{\widehat\alpha}k^{\widehat\beta}$ avec exposants propres au maillage déformé.}{0.9}
+
+Pour lire ensemble les deux grands tableaux d'erreur, on représente le rapport $err_{\text{déplacé}}/err_{\text{régulier}}$ à résolution et fréquence identiques. La ligne 1 correspond à des erreurs égales. Sur les douze cas, tous les rapports sont supérieurs à 1 : le déplacement augmente ici l'erreur, jusqu'à environ 27\,\% en $L^\infty$, 25\,\% en $L^2$ et 7\,\% en $H^1$. Sur le maillage le plus fin, les rapports sont plus proches de 1 que sur le plus grossier, sans être nécessairement monotones entre deux raffinements. Ce constat concerne le déplacement et l'onde étudiés ; il ne constitue pas une conclusion générale sur tous les maillages déformés.
+\resultfigure{displacement_error_ratios.png}{Effet du déplacement sur les trois normes : rapport des erreurs des deux familles pour chaque résolution et fréquence.}{0.9}
 
 \subsection{Analyse critique : interpolation, phase et stabilité}
 \subsubsection{Séparer les contributions d'erreur}
