@@ -31,9 +31,9 @@ cd ../presentation
 latexmk -pdf -interaction=nonstopmode -halt-on-error presentation.tex
 ```
 
-Les PDF et toutes leurs sources, y compris les tableaux inclus, sont fournis. Depuis la racine du projet, `make calculations` régénère les trois calculs ; `make documents` compile les deux PDF ; `make archive` prépare `Yann MOUSSU.zip`. `make all` enchaîne calculs, compilations et archive. Ces cibles utilisent `.venv/bin/python` par défaut, modifiable avec `make PYTHON=...`.
+Les PDF et toutes leurs sources, y compris les tableaux inclus, sont fournis.
 
-L'archive contient les trois scripts, les dépendances déclarées, les données, les figures, les sources et PDF du rapport et de la présentation, le README, le Makefile. Elle exclut `.venv`, `.git`, les caches, les auxiliaires LaTeX et les diapositives du professeur. Les références pédagogiques restent identifiées dans le rapport.
+L'archive contient les trois scripts, les dépendances déclarées, les données, les figures, les sources et PDF du rapport et de la présentation, le README. Elle exclut `.venv`, `.git`, les caches, les auxiliaires LaTeX et les diapositives du professeur. Les références pédagogiques restent identifiées dans le rapport.
 
 ## Conventions et correspondance aux questions
 
