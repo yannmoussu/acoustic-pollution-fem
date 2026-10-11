@@ -10,7 +10,7 @@
 \title{Maillages et précision de la méthode des éléments finis}
 \subtitle{Une onde acoustique harmonique : géométrie, convergence et pollution numérique}
 \author{Yann MOUSSU}
-\institute{CentraleSupélec — Cours 2SC5700}
+\institute{CentraleSupélec}
 \date{10 octobre 2026}
 \newcommand{\figureresultat}[2]{\begin{center}\includegraphics[width=#2\textwidth,height=.53\textheight,keepaspectratio]{../report/figures/#1}\end{center}}
 \begin{document}
@@ -45,6 +45,16 @@ Une aire positive est nécessaire au calcul ; elle ne suffit pas à garantir une
 \end{block}
 \end{frame}
 
+\begin{frame}{Alternatives géométriques et leurs limites}
+Plusieurs solutions simples sont correctes dans un cadre restreint, mais ne conviennent pas à toute la famille de maillages.
+\begin{itemize}
+\item Pour Q1, l'aire absolue ne distingue pas deux orientations opposées : le signe est contrôlé séparément.
+\item Pour Q4, un déplacement absolu fixe devient deux fois plus fort relativement à $h$ à chaque raffinement ; on retient $\mu\ell_j$.
+\item Pour Q7, le trapèze $(0,0),(2,0),(1,1),(0,1)$ donne une moyenne des sommets $(3/4,1/2)$, différente du centroïde $(7/9,4/9)$.
+\item Pour Q10, déplacer seulement le haut peut annuler la dernière épaisseur : $1/20-0,05=0$. La déformation répartie la conserve positive.
+\end{itemize}
+Ces exemples motivent les contrôles et les constructions détaillés ensuite. Une direction aléatoire fixée ou une autre diagonale restent des alternatives valables.
+\end{frame}
 \begin{frame}{Aires et critères de qualité}
 Les questions Q1 à Q3 portent sur l'aire et les deux critères géométriques du cours. Pour un triangle :
 \[
@@ -149,16 +159,6 @@ Sur le maillage $20\times20$, le bord comporte 80 nœuds et 80 segments. Les ind
 \end{block}
 \end{frame}
 
-\begin{frame}{Alternatives géométriques et choix retenus}
-Plusieurs solutions simples sont correctes dans un cadre restreint, mais ne conviennent pas à toute la famille de maillages.
-\begin{itemize}
-\item Pour Q1, l'aire absolue ne distingue pas deux orientations opposées : le signe est contrôlé séparément.
-\item Pour Q4, un déplacement absolu fixe devient deux fois plus fort relativement à $h$ à chaque raffinement ; on retient $\mu\ell_j$.
-\item Pour Q7, le trapèze $(0,0),(2,0),(1,1),(0,1)$ donne une moyenne des sommets $(3/4,1/2)$, différente du centroïde $(7/9,4/9)$.
-\item Pour Q10, déplacer seulement le haut peut annuler la dernière épaisseur : $1/20-0,05=0$. La déformation répartie la conserve positive.
-\end{itemize}
-Une direction aléatoire fixée ou une autre diagonale restent possibles ; les choix retenus assurent un protocole cohérent, sans optimiser toute forme.
-\end{frame}
 
 \section{Méthode des éléments finis}
 \begin{frame}{Modèle acoustique et solution exacte}
@@ -191,8 +191,18 @@ M_T=\frac{|T|}{12}\begin{pmatrix}2&1&1\\1&2&1\\1&1&2\end{pmatrix}.
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Alternatives pour le stockage et la résolution}
+\begin{block}{Matrices pleines : résultat de stockage}
+Sur $128\times32$, stocker $K,M$ en plein demanderait $276,52$ Mio. Ce coût théorique inclut les coefficients nuls et croît comme $N^2$.
+\end{block}
+\begin{block}{Gradient conjugué standard : condition non satisfaite}
+Sur $16\times4$ à $k=2\pi$, une direction propre de $A$ est négative et 44 sont positives. La matrice est indéfinie : les garanties du cas défini positif ne s'appliquent pas.
+\end{block}
+Gauss dense reste correct et une méthode itérative adaptée reste possible. Les limites constatées motivent ici une résolution directe exploitant les matrices creuses.
+\end{frame}
+
 \begin{frame}{Assemblage et résolution de Dirichlet}
-Les questions Q1 et Q2 utilisent le même solveur. L'assemblage produit des matrices creuses COO, puis CSR.
+Pour Q1 et Q2, le stockage COO puis CSR de $K,M$ vaut $0,70$ Mio sur $128\times32$, hors facteurs LU et temporaires.
 \[
 A=K-k^2M,\qquad A_{II}u_I=F_I-A_{IB}g_B,\qquad u_B=g_B.
 \]
@@ -206,14 +216,26 @@ Les 24 solutions ont un résidu relatif inférieur à $4\times10^{-15}$ et une e
 \end{block}
 \end{frame}
 
-\begin{frame}{Pourquoi une résolution directe creuse ?}
-La méthode de Gauss/LU évite de former explicitement l'inverse. Le stockage CSR exploite les coefficients nuls issus de l'assemblage FEM.
-\begin{itemize}
-\item Sur $128\times32$, le stockage de $K,M$ passe de $276,52$ Mio en plein à $0,70$ Mio en CSR, hors facteurs LU et temporaires.
-\item Pour $K_{II}v=\lambda_hM_{II}v$, on a $v^*A_{II}v=(\lambda_h-k^2)v^*M_{II}v$.
-\item Sur $16\times4$ à $k=2\pi$, une direction est négative et 44 sont positives : le gradient conjugué standard n'a pas ses garanties usuelles.
-\end{itemize}
-La factorisation directe est une référence robuste à ces tailles. Une méthode itérative adaptée peut être avantageuse à plus grande échelle, mais demanderait une étude de convergence et de préconditionnement.
+
+\begin{frame}{Alternative : mesurer seulement l'erreur nodale}
+\begin{block}{Résultat obtenu avec la matrice de masse}
+Sur $128\times32$ régulier à $k=3\pi$, $\sqrt{e_{\rm nodes}^*Me_{\rm nodes}}=2,5731\times10^{-3}$.
+\end{block}
+Cette mesure concerne $I_hu^*-u_h$, plutôt que $u^*-u_h$. Si $u_h=I_hu^*$, elle est nulle malgré une erreur continue non nulle.
+\begin{block}{Limite du maximum nodal}
+À $k=\pi$ sur le même maillage, le maximum nodal vaut $6,18\times10^{-5}$ ; les points intérieurs ne sont pas examinés.
+\end{block}
+Ces résultats motivent une intégration de l'erreur continue et un échantillonnage à l'intérieur des triangles.
+\end{frame}
+
+\begin{frame}{De la quadrature réduite à la précision retenue}
+\begin{block}{Alternative : ordres 2 et 3}
+À $k=3\pi$, sur les quatre maillages réguliers, l'ordre 2 donne jusqu'à $0,558\,\%$ d'écart relatif $L^2$ par rapport à l'ordre 8. L'ordre 3 donne jusqu'à $6,58\times10^{-6}$, au-dessus du seuil $10^{-7}$ retenu.
+\end{block}
+\begin{block}{Méthode retenue : ordre 6, contrôlé à l'ordre 8}
+Sur les trois normes et les deux familles de maillages, la variation relative reste inférieure à $3\times10^{-13}$. L'ordre 6 est validé, sans être démontré minimal.
+\end{block}
+La quadrature permet d'évaluer les intégrales FEM ; l'ordre retenu résulte d'un contrôle de précision, sans hypothèse d'intégration exacte de l'exponentielle.
 \end{frame}
 
 \begin{frame}{Normes d'erreur continues}
@@ -227,7 +249,7 @@ Pour $e=u^*-u_h$, les normes intègrent l'erreur à l'intérieur des éléments 
 \item La norme $L^\infty$ est estimée sur des grilles barycentriques imbriquées, avec stabilisation à $0,5\,\%$.
 \item Le maximum nodal et la norme de $I_hu^*-u_h$ ne remplacent pas les erreurs continues demandées.
 \end{itemize}
-Les matrices élémentaires, les gradients et les normes sont vérifiés sur des cas analytiques.
+Résultats retenus sur $128\times32$ : $\|e\|_{L^2}=2,8934\times10^{-3}$ à $k=3\pi$ ; maximum intérieur estimé $1,37\times10^{-4}$ à $k=\pi$.
 \end{frame}
 
 \begin{frame}{Stockage et définition de l'erreur}
@@ -236,16 +258,6 @@ Les matrices élémentaires, les gradients et les normes sont vérifiés sur des
 Si $u_h=I_hu^*$, l'erreur nodale est nulle, mais l'erreur continue subsiste. Une mesure nodale ne suffit donc pas à évaluer l'erreur demandée.
 \end{frame}
 
-\begin{frame}{Précision de l'intégration et cadre du cours}
-Une quadrature moins coûteuse est possible, mais doit être contrôlée sur l'intégrande exponentielle.
-\begin{itemize}
-\item À $k=3\pi$, l'ordre 2 donne jusqu'à $0,558\,\%$ d'écart relatif $L^2$ par rapport à l'ordre 8 ; l'ordre 3 donne jusqu'à $6,58\times10^{-6}$.
-\item Le contrôle 6/8 de l'étude principale reste sous $3\times10^{-13}$ : l'ordre 6 est conservateur, sans être démontré minimal.
-\item $P_1$, COO/CSR et Dirichlet suivent les supports ; propriétés matricielles et Gauss/LU relèvent des thèmes des chapitres 4 à 7.
-\item La factorisation creuse relève du thème du chapitre 8 ; les algorithmes internes de la bibliothèque et la recherche spectrale sont des outils, sans développement de méthodes itératives avancées.
-\end{itemize}
-Les alternatives sont évaluées comme des possibilités ; les mesures ne reconstruisent pas un historique de tentatives.
-\end{frame}
 
 \begin{frame}{Protocole et estimation des exposants}
 Les deux études utilisent $16\times4$, $32\times8$, $64\times16$ et $128\times32$, pour $k=\pi,2\pi,3\pi$.

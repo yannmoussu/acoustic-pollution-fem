@@ -56,6 +56,10 @@ Ces contrôles locaux et d'incidence ne constituent pas un détecteur général 
 \subsection{Aire et orientation}
 Cette partie traite la question Q1.
 
+\paragraph{Alternative envisagée et résultat.}
+Une autre approche pour Q1 consisterait à ne conserver que l'aire absolue. Elle ne permettrait pas de distinguer les triangles $(0,0),(1,0),(0,1)$ et $(0,0),(0,1),(1,0)$ : ils ont tous deux une aire $1/2$, mais des orientations opposées. Le contrôle du signe complète donc le calcul demandé sans modifier sa définition. De même, multiplier toutes les coordonnées par $c$ multiplie l'aire par $c^2$ ; une tolérance géométrique doit suivre cette même loi d'échelle.
+
+\paragraph{Méthode retenue et résultat.}
 Pour un triangle de sommets $P_0,P_1,P_2$, l'aire signée est
 \begin{equation*}
 a_T=\frac12\det(P_1-P_0,P_2-P_0),\qquad |T|=|a_T|.
@@ -64,11 +68,13 @@ Le calcul utilise des différences de coordonnées afin de limiter la cancellati
 
 La tolérance dépend de la dimension locale de l'élément : $64\varepsilon_{\rm mach}$ multiplié par le carré de son étendue. Une tolérance absolue fixe risquerait de refuser tous les triangles d'un maillage très fin ou d'accepter des triangles dégénérés dans un grand domaine.
 
-Une autre approche pour Q1 consisterait à ne conserver que l'aire absolue. Elle ne permettrait pas de distinguer les triangles $(0,0),(1,0),(0,1)$ et $(0,0),(0,1),(1,0)$ : ils ont tous deux une aire $1/2$, mais des orientations opposées. Le contrôle du signe complète donc le calcul demandé sans modifier sa définition. De même, multiplier toutes les coordonnées par $c$ multiplie l'aire par $c^2$ ; une tolérance géométrique doit suivre cette même loi d'échelle.
-
 \subsection{Rapport d'aspect}
 Cette partie traite la question Q2.
 
+\paragraph{Alternative envisagée et résultat.}
+Un indicateur normalisé entre 0 et 1 pourrait être construit en inversant le rapport d'aspect : le triangle équilatéral donnerait 1 et le triangle rectangle isocèle environ $0,7174$. Ce critère serait exploitable, mais ses valeurs ne seraient plus celles de la formule du cours. Il ne répondrait donc pas à la convention choisie pour Q2.
+
+\paragraph{Méthode retenue et résultat.}
 Le support \emph{Generating a mesh}, page 75, définit
 \begin{equation*}
 Q_T=\frac{\sqrt3}{6}\frac{h_{\max,T}}{\rho_T},\qquad
@@ -81,13 +87,15 @@ Pour le triangle rectangle isocèle de côtés $1,1,\sqrt2$, l'aire vaut $1/2$, 
 \subsection{Facteur de longueur d'arête}
 Cette partie traite la question Q3.
 
+\paragraph{Alternative envisagée et résultat.}
+La longueur intermédiaire est une convention possible, et non un mauvais algorithme : sur le triangle rectangle isocèle, elle donnerait $E_T=1$ au lieu de $0,87868$. Cette différence traduit une définition différente du critère. Le choix de la moyenne est documenté, sans prétendre résoudre définitivement l'ambiguïté du terme \emph{medium}. Inverser le rapport d'aspect donnerait également un indicateur utilisable, mais différent de la formule demandée par le cours.
+
+\paragraph{Méthode retenue et résultat.}
 La page 75 décrit le rapport de la plus petite arête à la longueur \emph{medium}. Cette expression ne donne pas une formule non ambiguë. Nous retenons explicitement la moyenne arithmétique :
 \begin{equation*}
 E_T=\frac{\min(\ell_1,\ell_2,\ell_3)}{(\ell_1+\ell_2+\ell_3)/3}.
 \end{equation*}
 Les résultats utilisent la moyenne arithmétique. $E_T$ vaut 1 pour le triangle équilatéral et environ 0,87868 pour le triangle rectangle isocèle.
-
-La longueur intermédiaire est une convention possible, et non un mauvais algorithme : sur le triangle rectangle isocèle, elle donnerait $E_T=1$ au lieu de $0,87868$. Cette différence traduit une définition différente du critère. Le choix de la moyenne est documenté, sans prétendre résoudre définitivement l'ambiguïté du terme \emph{medium}. Inverser le rapport d'aspect donnerait également un indicateur utilisable, mais différent de la formule demandée par le cours.
 
 \subsubsection{Indicateurs complémentaires}
 Les angles sont obtenus par produits scalaires normalisés, avec saturation du cosinus dans $[-1,1]$ avant application de $\arccos$. Nous calculons séparément l'angle minimal et l'angle maximal. Le maximum des cosinus est le cosinus du \emph{plus petit angle}. Il ne mesure pas directement un angle plat. Cet indicateur triangulaire est complémentaire ; il ne se substitue pas au critère de \emph{pointedness} défini pour les quadrangles à la page 76 du cours.
@@ -95,6 +103,10 @@ Les angles sont obtenus par produits scalaires normalisés, avec saturation du c
 \subsection{Amplitude adaptée aux éléments incidents}
 Cette partie traite la question Q4.
 
+\paragraph{Alternative envisagée et résultat.}
+Pour Q4, un déplacement absolu constant serait plus simple, mais son rapport à la taille de maille doublerait à chaque division de $h$ par deux. Il comparerait ainsi des perturbations relatives différentes et pourrait inverser des cellules fines. Le déplacement proportionnel à $\ell_j$ conserve au contraire l'intensité relative du protocole. Une direction aléatoire avec graine fixée pourrait aussi être reproductible ; la direction constante est retenue pour isoler un effet géométrique lisible, sans revendiquer une qualité optimale.
+
+\paragraph{Méthode retenue et résultat.}
 Pour chaque élément $e$, soit $\bar\ell_e$ la moyenne de ses longueurs d'arête. Pour le nœud $j$, soit $\mathcal E(j)$ l'ensemble des éléments incidents. La longueur locale est
 \begin{equation*}
 \ell_j=\frac{1}{\#\mathcal E(j)}\sum_{e\in\mathcal E(j)}\bar\ell_e,
@@ -102,16 +114,16 @@ Pour chaque élément $e$, soit $\bar\ell_e$ la moyenne de ses longueurs d'arêt
 \end{equation*}
 La direction est normalisée, $\widehat d=d/\norm{d}$ ; un vecteur nul ou non fini est refusé. L'amplitude relative $\mu$ est finie et positive ou nulle. Un nœud isolé n'est pas déplacé. Cette règle conserve la proportion entre déplacement et taille locale lors d'un raffinement.
 
-Pour Q4, un déplacement absolu constant serait plus simple, mais son rapport à la taille de maille doublerait à chaque division de $h$ par deux. Il comparerait ainsi des perturbations relatives différentes et pourrait inverser des cellules fines. Le déplacement proportionnel à $\ell_j$ conserve au contraire l'intensité relative du protocole. Une direction aléatoire avec graine fixée pourrait aussi être reproductible ; la direction constante est retenue pour isoler un effet géométrique lisible, sans revendiquer une qualité optimale.
-
 Le code peut déplacer tous les nœuds pour Q4. Après déplacement, chaque aire doit garder son signe et rester non dégénérée. Un déplacement trop fort provoque une erreur explicite ; il n'est pas réduit silencieusement, car cela changerait le protocole expérimental.
 
 \subsection{Préserver les nœuds de bord}
 Cette partie traite la question Q5.
 
-Une arête est de bord lorsqu'elle appartient à un seul élément. Les nœuds de ces arêtes forment l'ensemble $B$. Le déplacement interne applique la règle précédente uniquement à $j\notin B$ ; pour $j\in B$, $P'_j=P_j$ exactement. La frontière est détectée topologiquement, sans comparer les coordonnées à des valeurs comme $y=1$, ce qui serait faux sur un bord sinusoïdal.
-
+\paragraph{Alternative envisagée et résultat.}
 Une détection par les coordonnées extrêmes convient au rectangle initial, mais manquerait les points du bord supérieur vérifiant $y=1+0,05\sin(2\pi Lx)\neq1$. Pour Q5, le comptage des incidences répond donc mieux à la famille de domaines étudiée. Il suppose néanmoins un maillage conforme : cette hypothèse accompagne le choix de la méthode.
+
+\paragraph{Méthode retenue et résultat.}
+Une arête est de bord lorsqu'elle appartient à un seul élément. Les nœuds de ces arêtes forment l'ensemble $B$. Le déplacement interne applique la règle précédente uniquement à $j\notin B$ ; pour $j\in B$, $P'_j=P_j$ exactement. La frontière est détectée topologiquement, sans comparer les coordonnées à des valeurs comme $y=1$, ce qui serait faux sur un bord sinusoïdal.
 
 La direction choisie pour les études est $(1,0)$ et $\mu=0,1$. Il n'y a aucune génération aléatoire de déplacement. La construction est faite une fois par résolution, avant la boucle sur $k$. Deux exécutions avec les mêmes paramètres produisent donc les mêmes coordonnées et les mêmes solutions à précision machine. La génération d'une direction de déformation est annoncée comme extension de difficulté élevée dans l'énoncé ; nous utilisons une direction fixe explicitement documentée.
 
@@ -136,6 +148,10 @@ Le cosinus du plus petit angle augmente lorsque ce dernier diminue. Sa distribut
 \subsection{Barycentre d'un élément}
 Cette partie traite la question Q7.
 
+\paragraph{Alternative envisagée et résultat.}
+Pour Q7, la moyenne des sommets serait exacte sur un parallélogramme, mais pas sur tout quadrangle. Le trapèze $(0,0),(2,0),(1,1),(0,1)$ donne une moyenne $(3/4,1/2)$, alors que l'intégration surfacique donne $G=(7/9,4/9)$. Cet exemple justifie le centroïde surfacique lorsque le terme barycentre désigne celui d'une cellule de densité uniforme.
+
+\paragraph{Méthode retenue et résultat.}
 Pour un triangle, le centroïde est $(P_0+P_1+P_2)/3$. Pour un quadrangle quelconque, la moyenne des quatre sommets n'est généralement pas le centroïde surfacique. Le programme calcule ce dernier par
 \begin{equation*}
 G=\frac{1}{6a}\sum_{j=0}^{m-1}(P_j+P_{j+1})\det(P_j,P_{j+1}),
@@ -143,16 +159,16 @@ G=\frac{1}{6a}\sum_{j=0}^{m-1}(P_j+P_{j+1})\det(P_j,P_{j+1}),
 \end{equation*}
 avec $a$ l'aire signée ; le calcul est translaté autour du premier sommet pour sa stabilité. L'indice de l'élément et son aire sont vérifiés. Le cas triangulaire retrouve la moyenne des trois sommets.
 
-Pour Q7, la moyenne des sommets serait exacte sur un parallélogramme, mais pas sur tout quadrangle. Le trapèze $(0,0),(2,0),(1,1),(0,1)$ donne une moyenne $(3/4,1/2)$, alors que l'intégration surfacique donne $G=(7/9,4/9)$. Cet exemple justifie le centroïde surfacique lorsque le terme barycentre désigne celui d'une cellule de densité uniforme.
-
 \subsection{Subdivision des quadrangles}
 Cette partie traite la question Q8.
 
+\paragraph{Alternative envisagée et résultat.}
+Pour Q8, choisir la diagonale la plus courte ou celle qui maximise le plus petit angle peut améliorer certaines formes. Sur un rectangle, les deux diagonales ont la même longueur et produisent les mêmes angles : aucune ne domine ce critère. La diagonale fixe suffit donc à la famille régulière et assure un protocole cohérent. Sur un quadrangle concave, la validité géométrique prime : une diagonale extérieure serait refusée. Le code choisit une subdivision admissible, sans résoudre un problème général d'optimisation de qualité.
+
+\paragraph{Méthode retenue et résultat.}
 Pour un quadrangle convexe ordonné, la diagonale $(P_0,P_2)$ produit $(P_0,P_1,P_2)$ et $(P_0,P_2,P_3)$. Chaque cellule est examinée ; on ne suppose pas que le type du premier élément vaut pour tout le maillage. Les triangles d'un maillage mixte sont conservés.
 
 Une extension traite les quadrangles concaves simples : les deux diagonales sont essayées et seule celle dont les triangles ont le signe de l'aire du polygone et des aires non nulles est retenue. Les quadrangles croisés sont refusés. La somme des aires des deux triangles doit retrouver celle du quadrangle. La connectivité triangulaire aplatie et les nouveaux pseudo-pointeurs sont reconstruits. Les diagonales internes n'ajoutent pas de nœuds sur les côtés partagés, donc le découpage reste conforme entre cellules initialement conformes.
-
-Pour Q8, choisir la diagonale la plus courte ou celle qui maximise le plus petit angle peut améliorer certaines formes. Sur un rectangle, les deux diagonales ont la même longueur et produisent les mêmes angles : aucune ne domine ce critère. La diagonale fixe suffit donc à la famille régulière et assure un protocole cohérent. Sur un quadrangle concave, la validité géométrique prime : une diagonale extérieure serait refusée. Le code choisit une subdivision admissible, sans résoudre un problème général d'optimisation de qualité.
 
 \subsection{Opérations topologiques}
 Cette partie traite les questions Q9(i)--Q9(iv).
@@ -169,6 +185,11 @@ Les modifications sont vérifiées par des opérations inverses d'ajout et de su
 Cette partie traite la question Q10.
 
 \subsubsection{Alternative autorisée et niveau}
+\paragraph{Alternatives envisagées et limites.}
+Pour Q10, une construction fractale est une autre réponse explicitement proposée par l'énoncé ; elle n'est pas inférieure à la sinusoïde, mais impose une construction conforme et un contrôle d'aire supplémentaires. L'alternative sinusoïdale permet une preuve simple de conservation. Déplacer seulement le bord supérieur paraît moins coûteux, mais la dernière épaisseur devient $1/n_y+d_L(x)$ : avec $n_y=20$ et $d_L=-0,05$, elle est nulle. La déformation répartie conserve au contraire une épaisseur $(1+d_L)/n_y>0$.
+\resulttable{mesh_levels.tex}{Cinq niveaux, amplitude 0,05 et résolution $20\times20$. Toutes les cellules ont une orientation positive.}
+
+\paragraph{Méthode retenue et résultat.}
 Nous choisissons l'alternative explicitement autorisée à la question Q10 : une frontière irrégulière non fractale, avec niveau contrôlé et aire constante. Pour un rectangle de largeur $W$ et de hauteur $H$, la déformation est
 \begin{equation*}
 d_L(x)=a\sin\left(2\pi L\frac{x-x_{\min}}{W}\right),\qquad
@@ -203,8 +224,7 @@ Les valeurs aux extrémités sont nulles. Pour $L$ entier, les valeurs de sinus 
 
 Le calcul impose exactement zéro aux deux extrémités et vérifie la somme des aires à une tolérance relative de $10^{-12}$. Les cinq niveaux 0 à 4 sont testés à résolution constante $20\times20$. La conservation n'est pas déduite de la forme d'un histogramme.
 
-Pour Q10, une construction fractale est une autre réponse explicitement proposée par l'énoncé ; elle n'est pas inférieure à la sinusoïde, mais impose une construction conforme et un contrôle d'aire supplémentaires. L'alternative sinusoïdale permet une preuve simple de conservation. Déplacer seulement le bord supérieur paraît moins coûteux, mais la dernière épaisseur devient $1/n_y+d_L(x)$ : avec $n_y=20$ et $d_L=-0,05$, elle est nulle. La déformation répartie conserve au contraire une épaisseur $(1+d_L)/n_y>0$.
-\resulttable{mesh_levels.tex}{Cinq niveaux, amplitude 0,05 et résolution $20\times20$. Toutes les cellules ont une orientation positive.}
+
 
 \subsection{Sous-maillage de frontière}
 Cette partie traite la question Q11.
@@ -298,30 +318,16 @@ M_T=\frac{|T|}{12}
 Le code comporte une fonction de charge interpolée $F_T=M_Tf_T$. C'est exact pour une source représentée en $P_1$ ; une source générale demanderait une quadrature dédiée. Ici $f=0$, donc cette approximation de charge n'introduit aucune erreur.
 
 \subsubsection{Assemblage et stockage creux}
+\paragraph{Alternative envisagée et résultat.}
+Assembler deux matrices pleines est une solution correcte. Pour $N$ nœuds, elle réserve $16N^2$ octets en double précision, y compris pour les coefficients nuls. Sur $128\times32$, $N=4257$, cela représente $276,52$ Mio. Il s'agit d'un calcul de stockage théorique, sans allocation dense de cette taille. Ce coût quadratique motive l'utilisation de la structure creuse issue de la FEM.
+
+\paragraph{Méthode retenue et résultat.}
 Le cours FEM, page 7, assemble chaque contribution locale dans ses indices globaux. Nous construisons les $9N_e$ triplets de chaque matrice en format COO ; la conversion CSR additionne les contributions répétées. Le stockage et l'assemblage sont proportionnels au nombre de triangles avant factorisation. Les matrices globales $K$ et $M$ sont réelles et symétriques dans ce problème ; les inconnues et le second membre après conditions de bord sont complexes.
 
-La même géométrie fournit $K$ et $M$ pour tous les $k$. Elles ne sont donc assemblées qu'une fois par résolution. Pour chaque fréquence, $A(k)=K-k^2M$ est reconstruit et factorisé ; les facteurs d'une fréquence ne peuvent pas être réutilisés tels quels pour une autre. Cette optimisation conserve la méthode du cours.
-
-\paragraph{Alternative de stockage.}
-Un assemblage dans deux matrices pleines serait correct et facile à relire sur un petit exemple. Pour $N$ nœuds, il réserve toutefois $16N^2$ octets pour deux matrices réelles en double précision, même aux positions nulles. Sur $128\times32$, $N=4257$ : ce stockage théorique vaut $276,52$ Mio, contre $0,70$ Mio pour les tableaux CSR de $K$ et $M$ effectivement assemblés, soit environ 395 fois moins. Cette mesure exclut les facteurs LU et les tableaux temporaires ; elle ne mesure pas le temps de résolution. Le COO puis CSR utilise précisément les formats présentés dans le cours et exploite la localité de l'assemblage.
+La même géométrie fournit $K$ et $M$ pour tous les $k$. Elles ne sont donc assemblées qu'une fois par résolution. Pour chaque fréquence, $A(k)=K-k^2M$ est reconstruit et factorisé ; les facteurs d'une fréquence ne peuvent pas être réutilisés tels quels pour une autre. Cette optimisation conserve la méthode du cours. Sur le même maillage, les tableaux CSR de $K$ et $M$ occupent $0,70$ Mio, soit environ 395 fois moins que le stockage plein théorique. Cette mesure exclut les facteurs LU et les tableaux temporaires ; elle n'établit pas un gain de temps de résolution.
 
 \subsubsection{Dirichlet et résolution}
-Les indices $B$ sont ceux du bord topologique et $I$ ceux de l'intérieur. Avec $g_B=u^*(P_B)$, le bloc intérieur est
-\begin{equation*}
-A_{II}u_I=F_I-A_{IB}g_B,\qquad u_B=g_B.
-\end{equation*}
-Cette relation est celle du cours FEM, page 9. La trace discrète est l'interpolation $P_1$ de $u_d$ sur chaque segment : les valeurs sont exactes aux nœuds, mais la trace exponentielle n'est pas exactement affine entre eux.
-
-Le système intérieur est résolu par factorisation directe creuse. Le support \emph{Solving a linear system}, pages 7--9, justifie la factorisation directe sans inversion explicite. À fréquence assez élevée, $A$ est indéfinie ; le gradient conjugué standard n'est alors pas automatiquement applicable. La validité de la résolution est contrôlée par le résidu.
-
-Le résidu relatif calculé est
-\begin{equation*}
-r_{\rm rel}=\frac{\norm{A_{II}u_I-(F_I-A_{IB}g_B)}_2}
-{\norm{F_I-A_{IB}g_B}_2}.
-\end{equation*}
-Le résidu relatif doit satisfaire $r_{\rm rel}\leq10^{-9}$ ; les valeurs imposées au bord sont également vérifiées. Un petit résidu vérifie la résolution algébrique ; il ne garantit pas une petite erreur de discrétisation ni une bonne stabilité spectrale.
-
-\paragraph{Comparaison des méthodes de résolution.}
+\paragraph{Alternative envisagée et résultat.}
 La résolution dense par élimination de Gauss est légitime, mais perd l'avantage du stockage creux. Former explicitement $A^{-1}$ ajoute un calcul et un stockage inutiles lorsque seul $A^{-1}b$ est demandé. La factorisation suivie de substitutions triangulaires répond directement à ce besoin.
 
 Le gradient conjugué standard est une alternative intéressante lorsque la matrice est hermitienne définie positive. Pour une paire propre $K_{II}v=\lambda_hM_{II}v$, on obtient
@@ -330,37 +336,58 @@ v^*A_{II}v=(\lambda_h-k^2)v^*M_{II}v.
 \end{equation*}
 La comparaison sur $16\times4$ donne $\lambda_{h,\min}\simeq21,417$ et $\lambda_{h,\max}\simeq3345,807$. À $k=2\pi$, $k^2\simeq39,478$ : une direction propre est négative et 44 sont positives. $A_{II}$ est donc indéfinie et les garanties usuelles du gradient conjugué, comme celles de Cholesky définie positive, ne s'appliquent pas. Cela n'est pas une preuve que tout solveur itératif échouerait. Les méthodes adaptées citées dans le cours restent des alternatives possibles, mais leur préconditionnement et leur convergence demanderaient une étude spécifique.
 
-La factorisation directe creuse est retenue comme référence robuste pour les tailles considérées. Elle n'est pas démontrée optimale en temps ou en mémoire pour de grandes simulations : le remplissage des facteurs peut devenir coûteux.
+\paragraph{Méthode retenue et résultat.}
+Les indices $B$ sont ceux du bord topologique et $I$ ceux de l'intérieur. Avec $g_B=u^*(P_B)$, le bloc intérieur est
+\begin{equation*}
+A_{II}u_I=F_I-A_{IB}g_B,\qquad u_B=g_B.
+\end{equation*}
+Cette relation est celle du cours FEM, page 9. La trace discrète est l'interpolation $P_1$ de $u_d$ sur chaque segment : les valeurs sont exactes aux nœuds, mais la trace exponentielle n'est pas exactement affine entre eux.
+
+Le système intérieur est résolu par factorisation directe creuse. Sur les 24 cas, le résidu relatif reste inférieur à $4\times10^{-15}$ et les valeurs nodales de Dirichlet sont exactement respectées. Ce résultat confirme la précision algébrique de la méthode retenue, sans démontrer une optimalité à toute taille. Le support \emph{Solving a linear system}, pages 7--9, justifie la factorisation directe sans inversion explicite. À fréquence assez élevée, $A$ est indéfinie ; le gradient conjugué standard n'est alors pas automatiquement applicable. La validité de la résolution est contrôlée par le résidu.
+
+Le résidu relatif calculé est
+\begin{equation*}
+r_{\rm rel}=\frac{\norm{A_{II}u_I-(F_I-A_{IB}g_B)}_2}
+{\norm{F_I-A_{IB}g_B}_2}.
+\end{equation*}
+Le résidu relatif doit satisfaire $r_{\rm rel}\leq10^{-9}$ ; les valeurs imposées au bord sont également vérifiées. Un petit résidu vérifie la résolution algébrique ; il ne garantit pas une petite erreur de discrétisation ni une bonne stabilité spectrale.
 
 \subsection{Normes d'erreur et contrôles d'intégration}
 \subsubsection{Erreur continue et normes demandées}
+\paragraph{Alternative envisagée et résultat.}
+Une première mesure peut être construite à partir de l'erreur nodale $e_{\rm nodes}$ et de la matrice de masse : $\sqrt{e_{\rm nodes}^*Me_{\rm nodes}}$. Sur $128\times32$ régulier à $k=3\pi$, elle donne $2,5731\times10^{-3}$. Cette valeur mesure $I_hu^*-u_h$. Si $u_h=I_hu^*$, elle est même nulle alors que l'exponentielle n'est pas affine et que l'erreur continue subsiste. Cette alternative ne mesure donc pas la quantité demandée.
+
+\paragraph{Méthode retenue et résultat.}
 Pour $e=u^*-u_h$, les normes sont
 \begin{align*}
 \norm{e}_{L^2(\Omega)}^2&=\sum_{T\in\mathcal T_h}\int_T|u^*-u_h|^2\dd x,\\
 |e|_{H^1(\Omega)}^2&=\sum_{T\in\mathcal T_h}\int_T\norm{\nabla u^*-\nabla u_h}_2^2\dd x,\\
 \norm{e}_{H^1(\Omega)}^2&=\norm{e}_{L^2(\Omega)}^2+|e|_{H^1(\Omega)}^2.
 \end{align*}
-La norme $H^1$, et non seulement sa semi-norme, est utilisée dans toutes les études demandées. Le gradient exact de l'onde vaut $(\ii k e^{\ii kx},0)$.
+La norme $H^1$, et non seulement sa semi-norme, est utilisée dans toutes les études demandées. Le gradient exact de l'onde vaut $(\ii k e^{\ii kx},0)$. Sur le même cas, l'intégration continue donne $2,8934\times10^{-3}$ en $L^2$. La mesure nodale était donc inférieure de $11,1\,\%$ ; ce biais n'a pas nécessairement le même signe pour toute solution.
 
 Une somme d'erreurs nodales pondérée par un diamètre global ne représente pas cette intégration. De même, $e_{\rm nodes}^*Me_{\rm nodes}$ calcule la norme de $I_hu^*-u_h$, pas celle de $u^*-u_h$ ; elle omet l'erreur d'interpolation $u^*-I_hu^*$. Les valeurs exactes sont donc évaluées directement aux points de quadrature.
-
-\paragraph{Comparaison des deux mesures d'erreur.}
-L'erreur nodale interpolée peut être utile, mais mesure une autre quantité. Si l'on choisit $u_h=I_hu^*$, elle est exactement nulle aux nœuds alors que l'erreur continue reste non nulle pour une exponentielle non affine. Sur le maillage régulier $128\times32$ à $k=3\pi$, la norme issue de la matrice de masse vaut $2,5731\times10^{-3}$, contre $2,8934\times10^{-3}$ pour l'erreur continue : elle sous-estime ici cette dernière d'environ $11,1\,\%$. Ce biais n'a pas nécessairement le même signe pour toutes les solutions.
 
 La comparaison suivante reprend les quatre résolutions et le même solveur. Le panneau de gauche illustre l'économie de stockage établie lors de l'assemblage ; celui de droite distingue l'erreur continue, l'erreur nodale interpolée et l'erreur d'interpolation seule.
 \resultfigure{choices.png}{Comparaisons complémentaires : stockage réel de $K,M$ hors factorisation et mesures d'erreur sur maillage régulier à $k=3\pi$.}{1}
 
 \subsubsection{Quadrature et convergence numérique}
+\paragraph{Alternative envisagée et résultat.}
+Une quadrature moins coûteuse est envisageable. La comparaison complémentaire avec l'ordre 8, à $k=3\pi$ sur les quatre maillages réguliers, donne pour l'ordre 2 un écart relatif $L^2$ compris entre $0,159\,\%$ et $0,558\,\%$. L'ordre 3 donne un écart maximal $6,58\times10^{-6}$, encore supérieur au seuil $10^{-7}$ retenu pour cette vérification. Ces mesures portent sur $L^2$ régulier et motivent un ordre plus élevé pour le contrôle retenu.
+
+\paragraph{Méthode retenue et résultat.}
 Sur le triangle de référence, on utilise $\xi=r$, $\eta=(1-r)s$, $r,s\in[0,1]$. Le jacobien est $1-r$ et les coordonnées barycentriques sont $(1-\xi-\eta,\xi,\eta)$. Une quadrature de Gauss--Legendre tensorisée d'ordre $q$ donne $q^2$ points avec poids de somme $1/2$. Le passage au triangle physique multiplie les poids par $2|T|$.
 
-L'intégrande contient une exponentielle ; on ne prétend pas qu'une règle polynomiale de degré 2 soit exacte. Chaque cas compare $q=6$ et $q=8$ sur les normes et les erreurs d'interpolation. Le seuil relatif de contrôle est $10^{-7}$. Les variations observées restent inférieures à $3\times10^{-13}$ pour les cas de ce rapport.
-
-Une quadrature moins coûteuse est envisageable. La comparaison complémentaire avec l'ordre 8, à $k=3\pi$ sur les quatre maillages réguliers, donne pour l'ordre 2 un écart relatif $L^2$ compris entre $0,159\,\%$ et $0,558\,\%$. L'ordre 3 donne un écart maximal $6,58\times10^{-6}$, encore supérieur au seuil $10^{-7}$ retenu pour cette vérification. L'ordre 6 constitue donc un choix conservateur validé ; ces essais ne prouvent pas qu'il soit minimal, et une recherche d'ordre adaptatif pourrait réduire le coût. Le contrôle 6/8 couvre les normes et les géométries de l'étude principale, tandis que cette comparaison 2/3/8 porte seulement sur $L^2$ régulier.
+L'intégrande contient une exponentielle ; on ne prétend pas qu'une règle polynomiale de degré 2 soit exacte. Chaque cas compare $q=6$ et $q=8$ sur les normes et les erreurs d'interpolation. Le seuil relatif de contrôle est $10^{-7}$. Les variations observées restent inférieures à $3\times10^{-13}$ pour les cas de ce rapport. Le contrôle 6/8 porte sur les normes et les deux familles de maillages. Ce choix est conservateur et validé, sans être démontré minimal.
 
 \subsubsection{Norme infinie : convention et estimation}
+\paragraph{Alternative envisagée et résultat.}
+Le maximum nodal $\max_j|u^*(P_j)-u_j|$ est facile à calculer. Sur $128\times32$ régulier à $k=\pi$, il vaut $6,18\times10^{-5}$. Il ne considère toutefois aucun point intérieur ; il peut manquer un maximum entre les sommets et ne suffit pas à estimer l'erreur continue.
+
+\paragraph{Méthode retenue et résultat.}
 On distingue $\max_j|u^*(P_j)-u_j|$, norme infinie du vecteur nodal. On estime ensuite $\norm{e}_{L^\infty(\Omega)}$ sur des grilles barycentriques comprenant les sommets, les arêtes et l'intérieur. Les subdivisions 8 et 16 sont comparées, puis 32 et 64 si nécessaire ; l'augmentation relative du maximum doit être inférieure à 0,5\,\%.
 
-Les figures et tableaux utilisent ce maximum intérieur estimé, identifié comme tel. L'absence de variation sur deux grilles ne certifie pas le supremum exact ; elle est un contrôle de sensibilité d'échantillonnage. Sur le cas régulier $128\times32$, $k=\pi$, le maximum nodal vaut environ $6,18\times10^{-5}$ et le maximum intérieur estimé $1,37\times10^{-4}$. Cette différence montre pourquoi le maximum nodal seul ne suffit pas pour l'erreur continue.
+Les figures et tableaux utilisent ce maximum intérieur estimé, identifié comme tel. L'absence de variation sur deux grilles ne certifie pas le supremum exact ; elle est un contrôle de sensibilité d'échantillonnage. Sur le cas régulier $128\times32$, $k=\pi$, le maximum nodal vaut environ $6,18\times10^{-5}$ et le maximum intérieur estimé $1,37\times10^{-4}$. Le maximum intérieur retenu est ainsi environ 2,2 fois le maximum nodal dans ce cas.
 
 \subsubsection{Vérifications indépendantes}
 Le triangle $(0,0),(1,0),(0,1)$ donne
@@ -437,7 +464,7 @@ La quantité combinée permet de comparer les mesures au modèle ajusté pour ch
 Cette partie traite la question Q2.
 
 \subsubsection{Reproductibilité et qualité}
-Le déplacement de Q5 de la partie maillage est appliqué au maillage régulier, avec direction $(1,0)$ et amplitude relative 0,1. Le bord du carré reste fixe et l'onde exacte, les données de Dirichlet et les fréquences sont identiques à Q1. Les aires restent positives. Le diamètre moyen et le diamètre maximal sont recalculés ; ils ne sont plus tous égaux.
+On applique le déplacement utilisé dans la question Q5 de la partie maillage au maillage régulier, avec direction $(1,0)$ et amplitude relative 0,1. Le bord du carré reste fixe et l'onde exacte, les données de Dirichlet et les fréquences sont identiques à Q1. Les aires restent positives. Le diamètre moyen et le diamètre maximal sont recalculés ; ils ne sont plus tous égaux.
 
 Sur le maillage régulier, le rapport d'aspect est constant, environ 2,7147, et l'angle minimal vaut $14,04^\circ$. Après déplacement, certains triangles proches du bord se déforment davantage ; sur $128\times32$, le rapport maximal atteint environ 3,7759 et l'angle minimal $9,69^\circ$. Ces valeurs restent finies mais témoignent d'une dégradation locale. Le déplacement constant d'une grande partie des nœuds internes n'est pas une perturbation indépendante par sommet ; ses effets se concentrent notamment dans les transitions vers le bord fixé.
 
