@@ -1,0 +1,16 @@
+{
+  "topology_element_roundtrip": true,
+  "topology_node_roundtrip": true,
+  "translated_triangle_area": 0.5,
+  "affine_max_nodal_error": 2.220446049250313e-16,
+  "affine_relative_residual": 2.7392802715161507e-16,
+  "reference_triangle_weight_sum": 0.5000000000000001,
+  "barycentric_integrals": [
+    0.16666666666666669,
+    0.16666666666666669,
+    0.16666666666666674
+  ],
+  "constant_error_l2": 1.0,
+  "constant_error_h1": 1.0,
+  "constant_error_h1_semi": 0.0
+}
