@@ -6,6 +6,7 @@
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx,booktabs,longtable,array}
 \usepackage{geometry,float}
+\usepackage{needspace}
 \usepackage{hyperref}
 \usepackage[section]{placeins}
 \geometry{margin=2.2cm}
@@ -13,6 +14,10 @@
 \setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
 \setlength{\abovecaptionskip}{6pt}
 \setlength{\belowcaptionskip}{0pt}
+% Garder le titre et le début de l'analyse sur une même page.
+\AddToHook{cmd/section/before}{\Needspace{10\baselineskip}}
+\AddToHook{cmd/subsection/before}{\Needspace{8\baselineskip}}
+\AddToHook{cmd/subsubsection/before}{\Needspace{6\baselineskip}}
 \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue,
 pdftitle={Maillages et précision FEM d'une onde acoustique},pdfauthor={Yann MOUSSU}}
 \setlength{\emergencystretch}{3em}
@@ -203,7 +208,7 @@ La numérotation locale des nœuds du bord est indépendante de celle des segmen
 
 Sur le cas $64\times20$, la frontière comporte 168 nœuds et 168 segments. Les tests vérifient les bornes de connectivité locale, la correspondance vers les coordonnées globales et l'appartenance des extrémités au triangle propriétaire.
 
-\clearpage
+\par
 \section{Méthode des éléments finis}
 \subsection{Modèle acoustique et solution de référence}
 \subsubsection{De l'équation des ondes à Helmholtz}
@@ -493,7 +498,7 @@ Les fonctions de maillage répondent aux dix questions obligatoires et à l'extr
 Les études FEM répondent aux demandes de Q1 et Q2 pour les trois normes, avec calcul des pentes séparées, des exposants conjoints, des surfaces et de la quantité combinée. Les erreurs $L^2$ et $H^1$ sont celles de l'erreur continue intégrée, et le maximum intérieur reste explicitement estimé. À $k=\pi$, les ordres mesurés sont proches de 2 en $L^2$ et de 1 en $H^1$. La déformation augmente certaines erreurs, surtout sur les maillages grossiers, mais les tendances de raffinement sont préservées dans les cas étudiés.
 
 Les résidus, la quadrature et les tests analytiques étayent la fiabilité des calculs présentés. Les variations fréquentielles, les erreurs de phase et les écarts du modèle conjoint imposent néanmoins une analyse prudente : ces expériences vérifient un problème précis et ne démontrent pas une loi universelle de pollution ou une indépendance générale vis-à-vis de la qualité du maillage.
-\clearpage
+\par
 \begingroup
 \let\section\subsubsection
 \begin{thebibliography}{9}
