@@ -44,10 +44,10 @@ def compare_choices():
                         'negative_directions_k_2pi': int(np.sum(spectrum<(2*np.pi)**2)),
                         'positive_directions_k_2pi': int(np.sum(spectrum>(2*np.pi)**2))}
     data = ROOT/'report/data'
-    with (data/'choices.csv').open('w', newline='') as stream:
+    with (data/'choices.csv').open('w', newline='', encoding='utf-8') as stream:
         writer = csv.DictWriter(stream, fieldnames=rows[0]); writer.writeheader(); writer.writerows(rows)
     (data/'choices.json').write_text(json.dumps({'scope': 'Matrices réelles K/M ; stockage hors facteurs LU et temporaires. Onde régulière k=3π.',
-                                              'results': rows, 'spectrum_small_mesh': spectral}, indent=2, ensure_ascii=False)+'\n')
+                                              'results': rows, 'spectrum_small_mesh': spectral}, indent=2, ensure_ascii=False)+'\n', encoding='utf-8')
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.1), constrained_layout=True)
     nodes = [r['nodes'] for r in rows]
     for key, label in [('dense_K_M_bytes', 'Stockage plein théorique'), ('csr_K_M_bytes', 'Stockage CSR mesuré')]:
@@ -108,7 +108,7 @@ def illustrate_checks():
                 'barycentric_integrals': (weights@bary).tolist(),
                 'constant_error_l2': errors['err_l2'], 'constant_error_h1': errors['err_h1'],
                 'constant_error_h1_semi': errors['err_h1_semi']}
-    (ROOT/'report/data/verification.json').write_text(json.dumps(measures, indent=2, ensure_ascii=False)+'\n')
+    (ROOT/'report/data/verification.json').write_text(json.dumps(measures, indent=2, ensure_ascii=False)+'\n', encoding='utf-8')
     headers = ['Contrôle', 'Valeur attendue', 'Résultat du code']
     table_rows = [['Ajout/retrait d’un élément', 'Tableaux identiques', 'Oui'],
                   ['Ajout/retrait d’un nœud isolé', 'Tableaux identiques', 'Oui'],
@@ -123,23 +123,23 @@ def illustrate_checks():
     tex = ['\\begin{tabular}{p{7cm}rr}', '\\toprule', ' & '.join(headers)+r' \\', '\\midrule']
     tex += [' & '.join(row)+r' \\' for row in table_rows]
     tex += ['\\bottomrule', '\\end{tabular}']
-    (ROOT/'report/data/verification.tex').write_text('\n'.join(tex)+'\n')
-    comparisons = json.loads((ROOT/'report/data/choices.json').read_text())
+    (ROOT/'report/data/verification.tex').write_text('\n'.join(tex)+'\n', encoding='utf-8')
+    comparisons = json.loads((ROOT/'report/data/choices.json').read_text(encoding='utf-8'))
     tex = [r'\begin{tabular}{rrr}', r'\toprule', r'$n_x$ & Écart ordre 2/8 & Écart ordre 3/8 \\', r'\midrule']
     tex += [f"{r['nx']} & {r['quadrature_q2_relative']:.3e} & {r['quadrature_q3_relative']:.3e}"+r' \\' for r in comparisons['results']]
     tex += [r'\bottomrule', r'\end{tabular}']
-    (ROOT/'report/data/quadrature_checks.tex').write_text('\n'.join(tex)+'\n')
+    (ROOT/'report/data/quadrature_checks.tex').write_text('\n'.join(tex)+'\n', encoding='utf-8')
     tex = [r'\begin{tabular}{rrr}', r'\toprule', r'$n_x$ & Diamètre moyen & Déplacement fixe / diamètre \\', r'\midrule']
     tex += [f"{r['nx']} & {r['h']:.5f} & {0.01/r['h']:.5f}"+r' \\' for r in comparisons['results']]
     tex += [r'\bottomrule', r'\end{tabular}']
-    (ROOT/'report/data/displacement_scaling.tex').write_text('\n'.join(tex)+'\n')
+    (ROOT/'report/data/displacement_scaling.tex').write_text('\n'.join(tex)+'\n', encoding='utf-8')
 
     print(json.dumps(measures, ensure_ascii=False))
 
 
 def illustrate_result_tables():
     """Q1/Q2 FEM : on trace les exposants ajustés et les rapports d’erreur des deux maillages."""
-    datasets = {family: json.loads((ROOT/f'report/data/{family}.json').read_text())
+    datasets = {family: json.loads((ROOT/f'report/data/{family}.json').read_text(encoding='utf-8'))
                 for family in ('regular', 'shifted')}
     norms = [('err_inf', r'$L^\infty$ estimée'), ('err_l2', r'$L^2$'),
              ('err_h1', r'$H^1$')]

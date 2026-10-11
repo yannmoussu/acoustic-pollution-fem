@@ -15,6 +15,7 @@ from mesh_implementation import (
     check_mesh_implementation,
 )
 import matplotlib.pyplot as plt
+from matplotlib.ticker import NullFormatter
 
 NORM_KEYS = ("err_inf", "err_l2", "err_h1")
 NORM_LABELS = (r"$L^\infty$ estimée", r"$L^2$", r"$H^1$")
@@ -372,8 +373,12 @@ def plot_convergence(results, fits, shifted=False, output_dir=FIGURES):
             ax.loglog(h[mask], error[mask], "o-", label=rf"$k/\pi={value/np.pi:g}$, $\alpha={fit['exponent']:.2f}$")
             ax.loglog(h[mask], fit["C"]*h[mask]**fit["exponent"], "--", alpha=.55)
         ax.set(xlabel="Diamètre moyen h", ylabel=f"Erreur {label}")
+        # On affiche les diamètres mesurés sans gradations intermédiaires superposées.
+        ticks = np.unique(h)
+        ax.set_xticks(ticks, [f"{value:.3g}".replace(".", ",") for value in ticks])
+        ax.xaxis.set_minor_formatter(NullFormatter())
         ax.grid(True, which="both", alpha=.3)
-        ax.legend(fontsize=7)
+        ax.legend(fontsize=10)
     fig.suptitle(title+" — erreur selon h")
     fig.tight_layout()
     fig.savefig(output_dir/f"Figure{first}.png", dpi=180)
@@ -388,8 +393,11 @@ def plot_convergence(results, fits, shifted=False, output_dir=FIGURES):
             ax.loglog(k[mask], error[mask], "o-", label=rf"${nx}\times{nx//4}$, $\beta={fit['exponent']:.2f}$")
             ax.loglog(k[mask], fit["C"]*k[mask]**fit["exponent"], "--", alpha=.55)
         ax.set(xlabel="Nombre d'onde k", ylabel=f"Erreur {label}")
+        ticks = np.unique(k)
+        ax.set_xticks(ticks, [rf"${value/np.pi:g}\pi$" for value in ticks])
+        ax.xaxis.set_minor_formatter(NullFormatter())
         ax.grid(True, which="both", alpha=.3)
-        ax.legend(fontsize=7)
+        ax.legend(fontsize=10)
     fig.suptitle(title+" — erreur selon k")
     fig.tight_layout()
     fig.savefig(output_dir/f"Figure{first+1}.png", dpi=180)
@@ -425,7 +433,7 @@ def plot_convergence(results, fits, shifted=False, output_dir=FIGURES):
         ax.loglog(quantity[order], fit["C"]*quantity[order], "k--", label="Modèle ajusté")
         ax.set(xlabel=rf"$h^{{{fit['alpha']:.2f}}}k^{{{fit['beta']:.2f}}}$", ylabel=f"Erreur {label}")
         ax.grid(True, which="both", alpha=.3)
-        ax.legend(fontsize=7)
+        ax.legend(fontsize=10)
     fig.suptitle(title+" — quantité combinée estimée")
     fig.tight_layout()
     fig.savefig(output_dir/f"Figure{first+3}.png", dpi=180)

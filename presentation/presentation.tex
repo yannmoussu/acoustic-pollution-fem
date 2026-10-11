@@ -45,8 +45,37 @@ Une aire positive est nécessaire au calcul ; elle ne suffit pas à garantir une
 \end{block}
 \end{frame}
 
+\begin{frame}{Aire et orientation des éléments}
+Pour Q1, les coordonnées des sommets $P_0,P_1,P_2$ donnent l'aire signée d'un triangle :
+\[
+a_T=\frac12\det(P_1-P_0,P_2-P_0),\qquad |T|=|a_T|.
+\]
+\begin{itemize}
+\item L'aire signée distingue le sens du contour ; changer de signe après déplacement indique une inversion.
+\item Une aire nulle correspond à un élément dégénéré. Le seuil numérique suit le carré de la taille de l'élément.
+\item Pour les quadrangles ordonnés, on calcule l'aire par une somme de produits vectoriels sur leur contour.
+\end{itemize}
+\textbf{Contrôle :} le triangle rectangle de côtés perpendiculaires de longueur 1 donne une aire de $0,5$, y compris après translation de ses coordonnées de $10^9$.
+\end{frame}
+
+\begin{frame}{Critères de qualité triangulaire}
+Pour Q2 et Q3, on note $\ell_1,\ell_2,\ell_3$ les longueurs des arêtes, $h_{\max,T}$ la plus grande et $\rho_T$ le rayon du cercle inscrit \cite{mesh}.
+\[
+\rho_T=\frac{|T|}{(\ell_1+\ell_2+\ell_3)/2},\qquad
+Q_T=\frac{\sqrt3}{6}\frac{h_{\max,T}}{\rho_T},\qquad
+E_T=\frac{\min(\ell_1,\ell_2,\ell_3)}{(\ell_1+\ell_2+\ell_3)/3}.
+\]
+\par\smallskip{\centering
+\begin{tabular}{lrr}\toprule
+Triangle contrôlé & $Q_T$ & $E_T$\\\midrule
+Équilatéral & 1 & 1\\
+Rectangle isocèle & 1,39385 & 0,87868\\\bottomrule
+\end{tabular}\par}\smallskip
+$Q_T$ augmente lorsque la forme se dégrade ; $E_T$ diminue lorsque les longueurs sont déséquilibrées. Le terme \emph{medium} est interprété comme la moyenne arithmétique, convention utilisée dans tous les résultats.
+\end{frame}
+
 \begin{frame}{Déplacement : première approche et choix retenu}
-\textbf{Première approche :} déplacer chaque nœud d'une même distance, indépendante de la taille du maillage.
+Pour Q4, une première approche déplace chaque nœud d'une même distance, indépendante de la taille du maillage.
 \par\smallskip{\centering
 \begin{tabular}{lrrrr}\toprule
 Résolution horizontale & 16 & 32 & 64 & 128\\\midrule
@@ -55,28 +84,12 @@ Distance fixe / diamètre moyen & 0,039 & 0,078 & 0,155 & 0,310\\\bottomrule
 \par}\smallskip
 Pour une distance de $0,01$, la perturbation relative augmente à chaque raffinement. Cette première approche est écartée pour comparer des perturbations de même intensité relative.
 \begin{block}{Méthode retenue}
-Le déplacement est proportionnel à une longueur locale : $\mu\ell_j$. La frontière reste fixe et les aires sont contrôlées après déplacement.
+Le déplacement est proportionnel à une longueur locale : $\mu\ell_j$. Pour Q5, la frontière reste fixe. Les aires sont contrôlées après déplacement.
 \end{block}
-\end{frame}
-\begin{frame}{Aires et critères de qualité}
-Les questions Q1 à Q3 portent sur l'aire et les critères géométriques du cours \cite{mesh}. Pour un triangle :
-\[
-a_T=\frac12\det(P_1-P_0,P_2-P_0),\quad |T|=|a_T|,\quad
-\rho_T=\frac{|T|}{(\ell_1+\ell_2+\ell_3)/2}.
-\]
-\[
-Q_T=\frac{\sqrt3}{6}\frac{h_{\max,T}}{\rho_T},\qquad
-E_T=\frac{\min(\ell_1,\ell_2,\ell_3)}{(\ell_1+\ell_2+\ell_3)/3}.
-\]
-\begin{itemize}
-\item L'aire signée distingue inversion et dégénérescence.
-\item Pour l'équilatéral, $Q_T=E_T=1$ ; $Q_T$ augmente lorsque la forme se dégrade.
-\item Le terme \emph{medium} est interprété comme la moyenne arithmétique des longueurs, convention conservée dans tous les résultats.
-\end{itemize}
 \end{frame}
 
 \begin{frame}{Déplacement des nœuds et frontière fixe}
-Pour Q4, la longueur locale est calculée à partir des éléments incidents au nœud $j$ :
+Pour Q4, $\mu$ est l'amplitude relative, $\bar\ell_e$ la moyenne des arêtes de l'élément $e$ et $\mathcal E(j)$ l'ensemble des éléments incidents au nœud $j$. La longueur locale est
 \[
 \ell_j=\frac{1}{\#\mathcal E(j)}\sum_{e\in\mathcal E(j)}\bar\ell_e,
 \qquad P'_j=P_j+\mu\ell_j\frac{d}{\|d\|}.
@@ -85,7 +98,7 @@ Pour Q5, cette règle s'applique uniquement aux nœuds internes.
 \begin{itemize}
 \item Une arête appartient au bord si elle possède un seul élément incident.
 \item Les coordonnées des nœuds du bord restent exactement inchangées.
-\item Les études utilisent $d=(1,0)$ et $\mu=0,1$, avec les mêmes coordonnées pour tous les $k$.
+\item Les études utilisent $d=(1,0)$ et $\mu=0,1$.
 \end{itemize}
 \begin{block}{Validité géométrique}
 Les signes des aires sont contrôlés après déplacement. Une amplitude qui inverse ou dégénère un élément est refusée.
@@ -98,25 +111,32 @@ Pour Q6, on compare 1365 nœuds et 2560 triangles sur une frontière fractale de
 L'aire totale reste égale à 1 ; l'aire minimale passe de $3,6914\times10^{-4}$ à $2,9031\times10^{-4}$, sans inversion.
 \end{frame}
 
-\begin{frame}{Interprétation des indicateurs géométriques}
-La comparaison de Q6 montre une dégradation locale de la forme. Les histogrammes utilisent les mêmes classes avant et après déplacement.
-\begin{columns}[c]
-\begin{column}{.53\textwidth}
-\small
-\begin{tabular}{lrr}\toprule
-Indicateur & Avant & Après \\\midrule
-Aspect maximal & 3,1506 & 3,4639 \\
-Facteur d'arête minimal & 0,3767 & 0,3134 \\
-Angle minimal & $13,97^\circ$ & $12,77^\circ$ \\\bottomrule
-\end{tabular}
-
-\medskip
-Le déplacement conserve la validité du maillage, mais ne constitue pas un algorithme d'amélioration de sa qualité.
+\begin{frame}{Distribution des aires et du rapport d'aspect}
+Pour Q6, chaque histogramme compte les triangles par intervalle de valeurs. Les classes sont identiques avant et après déplacement.
+\begin{columns}[T]
+\begin{column}{.49\textwidth}
+\centering\includegraphics[width=\textwidth]{../report/figures/Figure1.png}
 \end{column}
-\begin{column}{.46\textwidth}
+\begin{column}{.49\textwidth}
 \includegraphics[width=\textwidth]{../report/figures/Figure2.png}
 \end{column}
 \end{columns}
+\smallskip
+L'aire totale reste égale à 1, mais les tailles se redistribuent. Le rapport d'aspect maximal passe de 3,1506 à 3,4639, soit environ $+10\,\%$ : certains triangles deviennent plus allongés.
+\end{frame}
+
+\begin{frame}{Longueurs d'arête et angles}
+Pour Q6, ces deux distributions complètent l'analyse de forme. Le cosinus du plus petit angle augmente lorsque cet angle diminue.
+\begin{columns}[T]
+\begin{column}{.49\textwidth}
+\centering\includegraphics[width=\textwidth]{../report/figures/Figure3.png}
+\end{column}
+\begin{column}{.49\textwidth}
+\includegraphics[width=\textwidth]{../report/figures/Figure4.png}
+\end{column}
+\end{columns}
+\smallskip
+Le facteur d'arête minimal passe de 0,3767 à 0,3134, soit environ $-17\,\%$. L'angle minimal diminue de $13,97^\circ$ à $12,77^\circ$ : le déplacement conserve la validité, mais dégrade localement la qualité.
 \end{frame}
 
 \begin{frame}{Barycentre, subdivision et opérations topologiques}
@@ -174,7 +194,7 @@ Sur le maillage $64\times20$, le bord comporte 168 nœuds et 168 segments. Les i
 
 \section{Méthode des éléments finis}
 \begin{frame}{Modèle acoustique et solution exacte}
-La convention harmonique est $\widetilde p(x,t)=\operatorname{Re}(u(x)e^{-\mathrm{i}\omega t})$, avec $k=\omega/c$. Sur $\Omega=(0,1)^2$ :
+La convention harmonique est $\widetilde p(x,t)=\operatorname{Re}(u(x)e^{-\mathrm{i}\omega t})$. Le nombre d'onde $k=\omega/c$ relie la pulsation $\omega$ à la célérité $c$ ; la longueur d'onde vaut $2\pi/k$. Sur $\Omega=(0,1)^2$ :
 \[
 -\Delta u-k^2u=0\quad\text{dans }\Omega,\qquad
 u=e^{\mathrm{i}kx}\quad\text{sur }\partial\Omega.
@@ -182,23 +202,32 @@ u=e^{\mathrm{i}kx}\quad\text{sur }\partial\Omega.
 La solution exacte $u^*(x,y)=e^{\mathrm{i}kx}$ permet une mesure directe de l'erreur \cite{model}.
 \begin{itemize}
 \item Milieu homogène sans amortissement ; propagation suivant $x$.
-\item $k=\pi,2\pi,3\pi$, hors du spectre continu $\pi^2(m^2+n^2)$, $m,n\geq1$.
+\item Pour $k=\pi,2\pi,3\pi$, $k^2$ est hors du spectre $\pi^2(m^2+n^2)$, $m,n\geq1$ \cite{eigen}.
 \item La pollution étudiée est l'erreur numérique de propagation ; les amplitudes sont normalisées.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Formulation faible et matrices élémentaires}
-Avec $v\in H^1_0(\Omega)$, l'identité de Green conduit à
+\begin{frame}{Formulation faible}
+Dans $H^1$, la fonction et ses premières dérivées sont de carré intégrable. La \textbf{trace} désigne ses valeurs au bord ; dans $H^1_0$, cette trace est nulle. Pour $v\in H^1_0(\Omega)$, l'identité de Green conduit à \cite{fem}
 \[
 \int_\Omega\nabla u\cdot\nabla v-k^2\int_\Omega uv=\int_\Omega fv.
 \]
-Une fonction \textbf{affine} est une constante plus une combinaison linéaire de $x,y$. L’\textbf{interpolation} $P_1$ relie les valeurs aux sommets par une telle fonction. Les \textbf{matrices élémentaires} sont calculées sur un seul triangle. Leurs gradients sont constants et donnent
+\begin{itemize}
+\item La valeur $u=e^{\mathrm{i}kx}$ est imposée au bord ; les fonctions test $v$ y sont nulles.
+\item Une base $P_1$ associe une fonction $\varphi_j$ à chaque nœud : elle vaut 1 en ce nœud, 0 aux autres, et est affine par triangle.
+\item On cherche $u_h=\sum_j u_j\varphi_j$. Les valeurs nodales internes $u_j$ sont les inconnues du système.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Matrices élémentaires et charge}
+Les \textbf{matrices élémentaires} sont calculées sur un seul triangle $T$. Les gradients des bases $P_1$ sont constants sur ce triangle \cite{fem} :
 \[
 (K_T)_{ij}=|T|\nabla\varphi_i\cdot\nabla\varphi_j,\qquad
 M_T=\frac{|T|}{12}\begin{pmatrix}2&1&1\\1&2&1\\1&1&2\end{pmatrix}.
 \]
 \begin{itemize}
-\item $K_T$ : \textbf{rigidité}, produits de gradients ; $M_T$ : \textbf{masse}, produits des bases ; $F_T$ : \textbf{charge}, contribution de la source $f=0$.
+\item $K_T$ : \textbf{rigidité}, produits de gradients ; $M_T$ : \textbf{masse}, produits des bases.
+\item La \textbf{charge} $F_T$ contient les intégrales $\int_T f\varphi_i$. Ici, la source $f=0$ donne une charge nulle.
 \item La correspondance locale/globale permet l'assemblage de $K$, $M$ et $F$.
 \end{itemize}
 \end{frame}
@@ -240,7 +269,7 @@ Les 24 solutions ont un résidu relatif inférieur à $4\times10^{-15}$ et une e
 
 
 \begin{frame}{Première approche : l'erreur aux nœuds}
-L’\textbf{erreur nodale} est $(e_{\rm nodes})_j=u^*(P_j)-u_j$. La matrice de masse intègre les produits des fonctions de base.
+L’\textbf{erreur nodale} est $(e_{\rm nodes})_j=u^*(P_j)-u_j$. L’\textbf{interpolation} $I_hu^*$ est affine par triangle et prend les valeurs exactes aux nœuds.
 \begin{block}{Résultat obtenu avec la matrice de masse}
 Sur $128\times32$ régulier à $k=3\pi$, $\sqrt{e_{\rm nodes}^*Me_{\rm nodes}}=2,5731\times10^{-3}$.
 \end{block}
@@ -268,6 +297,7 @@ Pour $e=u^*-u_h$, les normes intègrent l'erreur à l'intérieur des éléments 
 \|e\|_{L^2}^2=\sum_T\int_T|e|^2,\qquad
 \|e\|_{H^1}^2=\|e\|_{L^2}^2+\sum_T\int_T|\nabla e|^2.
 \]
+La norme $L^\infty$ est le maximum de $|e|$ sur le domaine ; le code en calcule une estimation intérieure.
 \begin{itemize}
 \item Les ordres de quadrature 6 et 8 donnent une variation relative inférieure à $3\times10^{-13}$.
 \item La norme $L^\infty$ est estimée sur des grilles de points à l’intérieur des triangles ; on raffine jusqu’à une variation inférieure à $0,5\,\%$.
@@ -304,7 +334,7 @@ Les intégrales des trois poids barycentriques valent chacune $1/6$ ; le code v�
 \end{frame}
 
 \begin{frame}{Ajustement conjoint : ce que l'on cherche}
-On cherche $C,\alpha,\beta$ pour décrire les douze mesures demandées dans \cite{femproject} par $err\simeq C\bar h^\alpha k^\beta$. \textbf{Conjoint} signifie que $h$ et $k$ sont étudiés ensemble.
+On cherche $C,\alpha,\beta$ pour décrire les douze mesures demandées dans \cite{femproject} par $err\simeq C\bar h^\alpha k^\beta$, où $\bar h$ est le diamètre moyen des triangles. \textbf{Conjoint} signifie que $h$ et $k$ sont étudiés ensemble.
 \[
 \log(err)\simeq c+\alpha\log(\bar h)+\beta\log(k),\qquad C=e^c.
 \]
@@ -329,6 +359,19 @@ Les deux études utilisent $16\times4$, $32\times8$, $64\times16$ et $128\times3
 Les exposants sont mesurés, sans imposer une loi en $h^2k^3$.
 \end{frame}
 
+\begin{frame}{Ordres attendus et vérification numérique}
+Pour une solution régulière, l'approximation $P_1$ donne les tendances usuelles à fréquence fixée \cite{fem} :
+\[
+err_{H^1}=O(h),\qquad err_{L^2}=O(h^2).
+\]
+\begin{itemize}
+\item Un raffinement divisant $h$ par deux devrait alors réduire l'erreur d'environ 2 en $H^1$ et 4 en $L^2$.
+\item Pour Helmholtz, la stabilité dépend aussi de $k$ et de la distance aux valeurs propres. Les lois de Laplace ne se transfèrent pas automatiquement.
+\item Aucun exposant fréquentiel universel n'est imposé : les pentes en $k$ sont estimées pour chacune des trois normes.
+\end{itemize}
+Les courbes suivantes vérifient ces tendances sur les quatre résolutions et distinguent les régimes grossiers des derniers raffinements.
+\end{frame}
+
 \begin{frame}{Convergence sur le maillage régulier}
 Pour Q1, à $k=\pi$, les pentes globales sont $\alpha_{L^2}=1,9745$ et $\alpha_{H^1}=1,0004$ : les ordres observés sont proches de 2 et de 1.
 \figureresultat{Figure5.png}{1}
@@ -341,10 +384,22 @@ Pour Q1, l'erreur augmente avec $k$ à résolution fixée. Cette sensibilité d�
 Les dérivées de l'onde plane portent des puissances de $k$. Trois fréquences permettent une estimation empirique, sans établir un exposant universel.
 \end{frame}
 
+\begin{frame}{Exposants spatiaux et fréquentiels mesurés}
+Pour Q1, les pentes des graphiques logarithmiques sont synthétisées pour les trois normes : à gauche, $\alpha$ à $k$ fixé ; à droite, $\beta$ à résolution fixée.
+\figureresultat{regular_exponents.png}{1}
+$\alpha_{H^1}$ reste entre 1,0004 et 1,0492. Pour $L^2$, $\beta$ passe de 2,7100 à 3,2339 avec le raffinement : la sensibilité fréquentielle mesurée dépend de la résolution.
+\end{frame}
+
 \begin{frame}{Modèle conjoint sur le maillage régulier}
 Pour Q1, le modèle $L^2$ donne $\widehat\alpha=1,8427$, $\widehat\beta=3,0479$ et $R^2_{\log}=0,99658$, mais un écart relatif maximal proche de $25\,\%$.
 \figureresultat{Figure7.png}{1}
 En $H^1$, les exposants sont 1,0202 et 2,0454, avec environ $4\,\%$ d'écart maximal : la loi conjointe décrit mieux cette norme sur la grille étudiée.
+\end{frame}
+
+\begin{frame}{Quantité combinée sur le maillage régulier}
+Pour Q1, chaque norme utilise ses propres exposants conjoints dans $z=\bar h^{\widehat\alpha}k^{\widehat\beta}$. Les douze mesures sont comparées à $err=\widehat C z$.
+\figureresultat{Figure8.png}{1}
+Le regroupement est plus précis en $H^1$. En $L^2$ et $L^\infty$, les écarts restants, jusqu'à environ $25\,\%$ et $27\,\%$, montrent les limites d'une loi unique.
 \end{frame}
 
 \begin{frame}{Convergence après déplacement interne}
@@ -353,10 +408,34 @@ Pour Q2, à $k=\pi$, les pentes globales sont $\alpha_{L^2}=2,0730$ et $\alpha_{
 La pente locale $L^2$ diminue de 2,1093 à 2,0319 : les données indiquent une approche de l'ordre 2, sans superconvergence persistante.
 \end{frame}
 
-\begin{frame}{Effet du déplacement et quantité combinée}
-Pour Q2, le modèle $L^2$ donne $\widehat\alpha=1,9237$ et $\widehat\beta=3,0107$, avec environ $27\,\%$ d'écart relatif maximal.
+\begin{frame}{Sensibilité fréquentielle après déplacement}
+Pour Q2, on utilise exactement le même déplacement à chaque nombre d'onde. Les courbes donnent l'erreur en fonction de $k$ pour chaque résolution.
+\figureresultat{Figure10.png}{1}
+L'erreur augmente avec $k$ dans les trois normes. Comme sur le maillage régulier, les pentes fréquentielles ne sont pas identiques entre les raffinements.
+\end{frame}
+
+\begin{frame}{Exposants après déplacement interne}
+Pour Q2, le diamètre moyen est recalculé sur les triangles déplacés. Les échelles sont identiques à celles de la synthèse sur maillage régulier.
+\figureresultat{shifted_exponents.png}{1}
+Les pentes $H^1$ restent proches de 1 en $h$ et de 2 en $k$. Les variations plus importantes en $L^2$ et $L^\infty$ confirment que l'exposant dépend de la norme et du régime.
+\end{frame}
+
+\begin{frame}{Modèle conjoint après déplacement interne}
+Pour Q2, la surface représente les erreurs selon $\bar h$ et $k$, avec le modèle ajusté aux douze mesures pour chaque norme.
+\figureresultat{Figure11.png}{1}
+En $L^2$, $\widehat\alpha=1,9238$, $\widehat\beta=3,0107$, avec environ $27\,\%$ d'écart maximal. En $H^1$, ils valent 1,0441 et 2,0486, avec environ $5\,\%$ d'écart maximal.
+\end{frame}
+
+\begin{frame}{Quantité combinée après déplacement interne}
+Pour Q2, la représentation selon $\bar h^{\widehat\alpha}k^{\widehat\beta}$ complète la surface. Chaque panneau utilise les exposants ajustés pour sa norme.
 \figureresultat{Figure12.png}{1}
-À $k=\pi$, le déplacement augmente l'erreur $L^2$ d'environ $25\,\%$ sur $16\times4$, contre $1,5\,\%$ sur $128\times32$ : son effet dépend de la résolution.
+La proximité d'une droite résume les tendances ; elle ne remplace pas les écarts relatifs. Le modèle décrit ici les mesures $H^1$ plus précisément que les mesures $L^2$ et $L^\infty$.
+\end{frame}
+
+\begin{frame}{Effet du déplacement sur les erreurs}
+À résolution et fréquence identiques, on trace $err_{\text{déplacé}}/err_{\text{régulier}}$. La ligne 1 correspond à des erreurs égales.
+\par\smallskip{\centering\includegraphics[width=\textwidth,height=.46\textheight,keepaspectratio]{../report/figures/displacement_error_ratios.png}\par}\smallskip
+Tous les rapports dépassent 1. À $k=\pi$, la hausse $L^2$ passe d'environ $25\,\%$ sur $16\times4$ à $1,5\,\%$ sur $128\times32$ : l'effet de cette perturbation dépend de la résolution.
 \end{frame}
 
 \begin{frame}{Interpolation, phase et stabilité}
@@ -367,8 +446,8 @@ u^*-u_h=(u^*-I_hu^*)+(I_hu^*-u_h)
 éclaire les contributions à l'erreur, dont les normes ne s'additionnent pas exactement.
 \begin{itemize}
 \item Sur le maillage régulier fin à $k=3\pi$, l'erreur $L^2$ totale vaut $2,893\times10^{-3}$, contre $4,949\times10^{-4}$ pour l'interpolation.
-\item Les maxima échantillonnés de phase et d'amplitude atteignent respectivement $3,10\times10^{-3}$ rad et $5,65\times10^{-3}$.
-\item La distance $\min_j|\lambda_{h,j}-k^2|$ reste supérieure à 3,17 sur les cas étudiés ; le spectre doit être recontrôlé pour d'autres fréquences.
+\item La phase est l'argument de l'onde complexe, son amplitude est son module. Les maxima de $|\arg(u_h\overline{u^*})|$ et de $\bigl||u_h|-1\bigr|$ atteignent $3,10\times10^{-3}$ rad et $5,65\times10^{-3}$.
+\item Les valeurs propres discrètes vérifient $K\phi=\lambda_hM\phi$ \cite{eigen}. La distance $\min_j|\lambda_{h,j}-k^2|$ reste supérieure à 3,17 sur les cas étudiés.
 \end{itemize}
 Ces indicateurs étayent l'analyse sans démontrer une domination générale de la dispersion.
 \end{frame}

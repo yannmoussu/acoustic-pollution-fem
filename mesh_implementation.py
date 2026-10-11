@@ -219,6 +219,8 @@ def plot_mesh_analysis(node_coords, p_elem2nodes, elem2nodes, output_dir=FIGURES
         for v, name in zip(values, ["Frontière irrégulière", "Après déplacement interne"]):
             ax.hist(v[np.isfinite(v)], bins=bins, alpha=0.6, label=name, edgecolor="black")
         ax.set(xlabel=label, ylabel="Nombre d'éléments", title="Analyse de qualité — Maillage Q6")
+        if number == 1:
+            ax.ticklabel_format(axis="x", style="sci", scilimits=(0, 0))
         ax.legend(fontsize=8)
         fig.tight_layout()
         fig.savefig(output_dir/f"Figure{number}.png", dpi=180)

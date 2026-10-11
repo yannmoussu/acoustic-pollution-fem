@@ -253,7 +253,7 @@ D’après le cours \cite{fem},
 \int_\Omega\Delta u\,v\dd x=-\int_\Omega\nabla u\cdot\nabla v\dd x
 +\int_\Gamma\frac{\partial u}{\partial n}v\dd s.
 \end{equation*}
-Avec $V=H^1_0(\Omega;\mathbb C)$ et $V_{u_d}=\{w\in H^1(\Omega;\mathbb C):\operatorname{Tr}w=u_d\}$, chercher $u\in V_{u_d}$ tel que
+L'espace $H^1$ regroupe les fonctions dont la valeur et les dérivées premières sont de carré intégrable. La \textbf{trace} désigne leurs valeurs au bord ; $H^1_0$ impose une trace nulle. Avec $V=H^1_0(\Omega;\mathbb C)$ et $V_{u_d}=\{w\in H^1(\Omega;\mathbb C):\operatorname{Tr}w=u_d\}$, chercher $u\in V_{u_d}$ tel que
 \begin{equation*}
 \forall v\in V,\quad \int_\Omega\nabla u\cdot\nabla v\dd x
 -k^2\int_\Omega uv\dd x=\int_\Omega fv\dd x.
@@ -452,7 +452,7 @@ La représentation en fonction du nombre d’onde complète les pentes fréquent
 
 \subsubsection{Ajustement conjoint et comparaison}
 \resulttable{shifted_joint.tex}{Exposants conjoints, qualité logarithmique et écarts relatifs.}
-L'ajustement $L^2$ donne $\widehat\alpha\simeq1,9237$ et $\widehat\beta\simeq3,0107$, avec un écart relatif maximal d'environ 27\,\%. Pour $H^1$, les exposants valent 1,0441 et 2,0486 ; l'écart maximal est proche de 5\,\%. La distinction entre précision moyenne d'une régression et fidélité de chaque cas reste donc nécessaire.
+L'ajustement $L^2$ donne $\widehat\alpha\simeq1,9238$ et $\widehat\beta\simeq3,0107$, avec un écart relatif maximal d'environ 27\,\%. Pour $H^1$, les exposants valent 1,0441 et 2,0486 ; l'écart maximal est proche de 5\,\%. La distinction entre précision moyenne d'une régression et fidélité de chaque cas reste donc nécessaire.
 
 Au maillage grossier $16\times4$, $k=\pi$, l'erreur $L^2$ passe de $4,905\times10^{-3}$ à $6,132\times10^{-3}$, soit une hausse d'environ 25\,\%. Au maillage fin $128\times32$, elle passe de $8,099\times10^{-5}$ à $8,219\times10^{-5}$, soit environ 1,5\,\%. Les effets observés dépendent de la résolution ; cette seule direction de déplacement ne permet pas de conclure sur toute famille de maillages irréguliers.
 \resultfigure{Figure11.png}{Surface mesurée et modèle ajusté, chaque panneau représentant une norme.}{0.9}
@@ -460,7 +460,7 @@ Au maillage grossier $16\times4$, $k=\pi$, l'erreur $L^2$ passe de $4,905\times1
 La quantité combinée permet de comparer les mesures au modèle ajusté pour chaque norme ; les écarts à une loi unique restent ceux quantifiés dans le tableau.
 \resultfigure{Figure12.png}{Erreur selon $\bar h^{\widehat\alpha}k^{\widehat\beta}$ avec exposants propres au maillage déformé.}{0.9}
 
-Pour lire ensemble les deux grands tableaux d'erreur, on représente le rapport $err_{\text{déplacé}}/err_{\text{régulier}}$ à résolution et fréquence identiques. La ligne 1 correspond à des erreurs égales. Sur les douze cas, tous les rapports sont supérieurs à 1 : le déplacement augmente ici l'erreur, jusqu'à environ 27\,\% en $L^\infty$, 25\,\% en $L^2$ et 7\,\% en $H^1$. Sur le maillage le plus fin, les rapports sont plus proches de 1 que sur le plus grossier, sans être nécessairement monotones entre deux raffinements. Ce constat concerne le déplacement et l'onde étudiés ; il ne constitue pas une conclusion générale sur tous les maillages déformés.
+Le rapport $err_{\text{déplacé}}/err_{\text{régulier}}$ compare les deux tableaux d'erreur à résolution et fréquence identiques. La ligne 1 correspond à des erreurs égales. Sur les douze cas, tous les rapports sont supérieurs à 1 : le déplacement augmente ici l'erreur, jusqu'à environ 27\,\% en $L^\infty$, 25\,\% en $L^2$ et 7\,\% en $H^1$. Sur le maillage le plus fin, les rapports sont plus proches de 1 que sur le plus grossier, sans être nécessairement monotones entre deux raffinements. Ce constat concerne le déplacement et l'onde étudiés ; il ne constitue pas une conclusion générale sur tous les maillages déformés.
 \resultfigure{displacement_error_ratios.png}{Effet du déplacement sur les trois normes : rapport des erreurs des deux familles pour chaque résolution et fréquence.}{0.9}
 
 \subsection{Analyse critique : interpolation, phase et stabilité}

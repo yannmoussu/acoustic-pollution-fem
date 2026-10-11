@@ -1,29 +1,59 @@
-# Maillages et précision FEM d'une onde acoustique
+# Maillages et précision FEM d’une onde acoustique
 
-Projet CentraleSupélec, cours 2SC5700. Les trois bibliothèques scientifiques utilisées sont NumPy, SciPy et Matplotlib. Les versions ayant produit les résultats sont enregistrées dans `requirements.txt` et les JSON ; l'environnement vérifié utilise Python **3.14.6**. Les dépendances indirectes installées sont celles de ces trois bibliothèques, sans autre bibliothèque scientifique directement utilisée par les scripts.
+Projet CentraleSupélec, cours 2SC5700. Les seules bibliothèques scientifiques utilisées sont NumPy, SciPy et Matplotlib.
 
-## Installation et exécution
+## Installation
 
-Depuis ce dossier :
+Python **3.12 ou plus récent** est nécessaire pour les versions indiquées dans `requirements.txt`. L’installation et les calculs ont été vérifiés avec Python 3.14.6, NumPy 2.5.3, SciPy 1.18.1 et Matplotlib 3.11.2.
+
+Après extraction du ZIP, ouvrir un terminal dans le dossier `Yann MOUSSU`.
+
+Sous Linux ou macOS :
 
 ```sh
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python mesh_implementation.py
-.venv/bin/python fem_implementation.py
-.venv/bin/python fem_implementation_shifted.py
-.venv/bin/python appendix.py
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
-Les commandes exécutent les vérifications avant le calcul.
+Sous Windows, dans l’invite de commandes :
 
-La variante FEM déformée importe le solveur commun ; les trois scripts doivent être conservés ensemble. Les sorties sont indépendantes du répertoire depuis lequel les commandes sont lancées : `report/figures/` pour les images et `report/data/` pour les CSV, JSON et tableaux LaTeX. Les caches locaux vont dans `build/` et ne sont pas livrés.
+```bat
+py -3 -m venv .venv
+.venv\Scripts\activate.bat
+python -m pip install -r requirements.txt
+```
 
-Le protocole par défaut utilise `(16,4)`, `(32,8)`, `(64,16)`, `(128,32)` et `k=π,2π,3π`. Les calculs régénèrent les données, ajustements et tableaux de chaque famille. Si le protocole change, adapter aussi les descriptions et chiffres du rapport et de la présentation : les tableaux sont générés, mais les paragraphes d'analyse ne sont pas rédigés automatiquement.
+## Exécution
 
-## Rapport, présentation et archive
+Dans le même terminal, lancer les programmes dans cet ordre :
 
-Une distribution LaTeX contenant `latexmk`, `babel` français, `lmodern` et `beamer` est nécessaire **uniquement pour recompiler les documents**, pas pour exécuter les simulations.
+```sh
+python mesh_implementation.py
+python fem_implementation.py
+python fem_implementation_shifted.py
+python appendix.py
+```
+
+- `mesh_implementation.py` construit et analyse les maillages, puis exécute les opérations de Q1 à Q11.
+- `fem_implementation.py` résout le problème sur les maillages réguliers et calcule les erreurs et ajustements de Q1.
+- `fem_implementation_shifted.py` utilise le même solveur après déplacement interne pour Q2.
+- `appendix.py` produit les comparaisons de stockage, les contrôles complémentaires, les graphiques d’exposants et les rapports d’erreur des deux familles.
+
+Les vérifications numériques sont exécutées par les trois scripts principaux avant les calculs. Les fonctions portent les numéros des questions dans leurs docstrings. Les quatre fichiers Python doivent rester dans le même dossier.
+
+Les maillages sont générés directement : aucun fichier de maillage extérieur n’est nécessaire. Les résultats sont écrits dans `report/data/` (CSV, JSON et tableaux LaTeX) et `report/figures/` (images). Ces chemins sont calculés à partir de l’emplacement des scripts. Les fichiers JSON fournis contiennent les résultats utilisés pour les graphiques complémentaires ; ils sont régénérés par les études FEM. Les caches créés dans `build/` peuvent être supprimés.
+
+Le protocole utilise les maillages `16×4`, `32×8`, `64×16`, `128×32` et les nombres d’onde `π`, `2π`, `3π`, soit 24 solutions. Sur la machine de vérification, l’exécution complète prend environ 30 secondes, y compris la création initiale des caches graphiques ; la durée dépend de la machine.
+
+## Documents
+
+Les PDF se lisent directement, sans installation de LaTeX :
+
+- `report/report.pdf` : rapport et analyses.
+- `presentation/presentation.pdf` : présentation.
+
+Pour recompiler les sources, une distribution LaTeX contenant `latexmk`, `babel` français, `lmodern`, `needspace` et `beamer` est nécessaire :
 
 ```sh
 cd report
@@ -32,62 +62,10 @@ cd ../presentation
 latexmk -pdf -interaction=nonstopmode -halt-on-error presentation.tex
 ```
 
-Les PDF et toutes leurs sources, y compris les tableaux inclus, sont fournis.
+L’archive contient les deux PDF, leurs sources et les figures et tableaux utilisés, les quatre programmes, les données de calcul, `requirements.txt` et ce README. Les supports du professeur, anciens dossiers extraits, caches, auxiliaires LaTeX et outils de développement sont exclus.
 
-L'archive contient les trois scripts principaux et `appendix.py`, les dépendances déclarées, les données, les figures, les sources et PDF du rapport et de la présentation, le README. Elle exclut `.venv`, `.git`, les caches, les auxiliaires LaTeX et les diapositives du professeur. Les références pédagogiques restent identifiées dans le rapport.
+## Conventions et vérifications
 
-## Conventions et correspondance aux questions
+Le facteur d’arête utilise la moyenne arithmétique des longueurs. Les quadrangles subdivisés sont convexes et ordonnés. Le bord fractal est construit à niveau fixé, avec aire conservée ; le déplacement interne laisse les nœuds du bord inchangés.
 
-- Maillage Q1–Q11 : `mesh_implementation.py`, commentaires portant le numéro réel de chaque question.
-- FEM Q1 : `fem_implementation.py`. FEM Q2 : `fem_implementation_shifted.py`, avec fonctions communes marquées Q1/Q2.
-- Les énoncés FEM n'ont pas de sous-questions officiellement lettrées : les commentaires utilisent les intitulés des demandes.
-- Géométrie plane, indices entiers commençant à zéro, connectivité à pseudo-pointeurs ; triangles et quadrangles ordonnés et non dégénérés. Le solveur exige des triangles orientés positivement.
-- Rapport d'aspect : `(sqrt(3)/6)*h_max/rho`. Facteur d'arête : minimum/moyenne arithmétique ; l'option `convention="median"` permet la longueur intermédiaire si une précision du professeur l'exige.
-- Frontière Q10 : construction fractale auto-affine à motif polygonal antisymétrique ; rapport vertical 0,6, niveau entier indépendant de la résolution. Pour un niveau positif, nx doit être multiple de 2**(niveau+1). La borne amplitude/(1-0,6) reste inférieure à la hauteur. L'aire constante est vérifiée numériquement à chaque niveau.
-- Déplacement interne : direction `(1,0)`, amplitude relative `0.1`, mêmes paramètres et coordonnées pour tous les k d'une résolution.
-- `h` : diamètre moyen des triangles, différent de `1/nx`. `h_max` est exporté séparément.
-- L² et H¹ : erreurs **continues intégrées**, avec quadrature d'ordre 6 contrôlée à l'ordre 8 ; la semi-norme H¹ est aussi exportée.
-- L∞ : maximum **estimé** sur grilles barycentriques imbriquées, stabilisation relative à 0,5 %. Le maximum nodal est conservé séparément ; aucun supremum exact n'est certifié.
-- Matrices K/M assemblées une seule fois par géométrie en COO/CSR ; factorisation de `K-k²M` sur les inconnues intérieures ; résidu exigé inférieur à `1e-9`.
-- Les régressions séparées et conjointes sont empiriques. L'erreur maximale du modèle est publiée avec R² ; les puissances ne sont pas imposées à 2 et 3.
-
-`compute_norms(node_coords, p_elem2nodes, elem2nodes, u_approx, wavenumber, ...)` calcule les normes à partir de la géométrie et des valeurs nodales. Les vecteurs FEM sont complexes de forme `(n,)`. `get_boundary_mesh` renvoie un `BoundaryMesh` avec coordonnées, pseudo-pointeurs, connectivité locale, `l2g` et éléments adjacents. `remove_node` renvoie les trois tableaux et refuse un nœud encore référencé.
-
-## Format de chargement
-
-`load_mesh(nodes_file, elements_file)` lit des fichiers texte :
-
-```text
-# nœuds : identifiant x y
-10 0 0
-30 1 0
-80 0 1
-```
-
-```text
-# éléments : identifiant n1 n2 n3 [n4]
-99 10 30 80
-```
-
-Les identifiants sont convertis en indices locaux ; ils ne doivent pas être nécessairement contigus. Un fichier d'éléments contient soit trois soit quatre sommets par ligne. Les fonctions de connectivité acceptent aussi les tableaux mixtes construits en mémoire. Les suppressions et ajouts ne remeshingent pas automatiquement le domaine ; les contrôles locaux ne détectent pas tous les recouvrements possibles de cellules arbitrairement insérées.
-
-## Validation et limites
-
-Les scripts vérifient les critères analytiques, les barycentres, les niveaux et l'aire, le déplacement, le sous-maillage de bord, les modifications topologiques, le chargement d'identifiants, les matrices élémentaires, la solution affine exacte, les normes d'une erreur constante, les gradients, Dirichlet, la quadrature, la régression sur une loi synthétique et la reproductibilité.
-
-Les résultats publiés comprennent 24 solutions. Ils montrent les tendances pour une onde suivant x sur le carré unité. Ils ne constituent pas une simulation d'atténuation environnementale, une preuve de loi universelle de pollution, ni un résultat valable pour toutes les déformations ou toutes les fréquences. Les autres conventions possibles du terme « medium » doivent être annoncées si elles sont retenues.
-
-
-Les versions utilisées sont NumPy 2.5.3, SciPy 1.18.1 et Matplotlib 3.11.2. Les CSV contiennent les erreurs et les diagnostics de chaque cas ; les JSON ajoutent les paramètres, les versions et les ajustements. Les tableaux LaTeX sont générés à partir de ces mesures.
-
-## Comparaison des choix numériques
-
-`.venv/bin/python appendix.py` reproduit les comparaisons complémentaires du rapport : stockage théorique plein et tableaux CSR de K/M, erreur continue et norme nodale de masse, quadratures d’ordres 2/3/8. Le spectre généralisé est calculé en dense uniquement sur le petit maillage 16×4 pour vérifier l’indéfinitude. Les résultats sont exportés dans `report/data/choices.csv` et `choices.json`, avec `report/figures/choices.png`. Le stockage mesuré exclut les facteurs LU et les tableaux temporaires ; aucun gain de temps n’est déduit de cette mesure. Le livre n’étant pas fourni dans le projet, le rapprochement avec ses chapitres repose sur les thèmes indiqués ; les supports fournis restent la référence vérifiée.
-
-## Origine des fichiers
-
-Les documents pédagogiques fournis par le professeur sont les PDF des supports et des énoncés. Les maillages utilisés dans les simulations sont construits directement en Python : aucun fichier externe de nœuds ou d’éléments n’est requis. Les CSV, JSON, tableaux LaTeX et figures sont des sorties produites pour ce projet. `appendix.py` reproduit les comparaisons complémentaires, sans constituer un outil ou une donnée fournis par le professeur. La fonction `load_mesh` est un utilitaire facultatif, non utilisé par les simulations du devoir.
-
-Pour Q7, le barycentre est la moyenne des sommets de poids égaux (centroïde surfacique pour un triangle ou un parallélogramme). Pour Q8, le découpage est limité aux quadrangles strictement convexes à sommets ordonnés, suivant la diagonale (0,2). Les cellules concaves, croisées ou dégénérées sont refusées.
-
-Les figures `topology_checks.png` et `sampling_grids.png`, ainsi que les tableaux `verification.tex` et `quadrature_checks.tex`, sont générés par `appendix.py`. Ce script lit aussi `regular.json` et `shifted.json` pour tracer les exposants et les rapports d'erreur ; il s'exécute après les deux études FEM. `verification.json` conserve les mesures des contrôles. La construction de la frontière pour Q10 est un choix du projet, sans formule imposée par les supports.
+Les erreurs L² et H¹ sont intégrées dans les triangles. La norme L∞ est estimée par échantillonnage intérieur. Les contrôles portent notamment sur les aires, les matrices élémentaires, une solution affine exacte, les conditions de Dirichlet, le résidu, la quadrature et la reproductibilité. Les exposants sont ajustés aux mesures, sans imposer une loi universelle en h et k.
