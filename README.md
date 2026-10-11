@@ -42,7 +42,7 @@ L'archive contient les trois scripts, les dépendances déclarées, les données
 - Les énoncés FEM n'ont pas de sous-questions officiellement lettrées : les commentaires utilisent les intitulés des demandes.
 - Géométrie plane, indices entiers commençant à zéro, connectivité à pseudo-pointeurs ; triangles et quadrangles ordonnés et non dégénérés. Le solveur exige des triangles orientés positivement.
 - Rapport d'aspect : `(sqrt(3)/6)*h_max/rho`. Facteur d'arête : minimum/moyenne arithmétique ; l'option `convention="median"` permet la longueur intermédiaire si une précision du professeur l'exige.
-- Frontière Q10 : **alternative sinusoïdale autorisée**, non une fractale ; niveau entier, amplitude inférieure à la hauteur, au moins quatre intervalles par période. Aire polygonale constante démontrée et vérifiée.
+- Frontière Q10 : construction fractale auto-affine à motif polygonal antisymétrique ; rapport vertical 0,6, niveau entier indépendant de la résolution. Pour un niveau positif, nx doit être multiple de 2**(niveau+1). La borne amplitude/(1-0,6) reste inférieure à la hauteur. Aire constante à chaque niveau, démontrée et vérifiée.
 - Déplacement interne : direction `(1,0)`, amplitude relative `0.1`, mêmes paramètres et coordonnées pour tous les k d'une résolution.
 - `h` : diamètre moyen des triangles, différent de `1/nx`. `h_max` est exporté séparément.
 - L² et H¹ : erreurs **continues intégrées**, avec quadrature d'ordre 6 contrôlée à l'ordre 8 ; la semi-norme H¹ est aussi exportée.

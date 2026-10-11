@@ -313,8 +313,8 @@ def remove_node(node_coords, p_elem2nodes, elem2nodes, nodeid):
         raise ValueError("Supprimer d'abord les éléments incidents à ce nœud.")
     return np.delete(xy, nodeid, axis=0), p.copy(), conn-(conn > nodeid)
 
-# Réponse Maillage Q10 — Alternative autorisée : sinusoïde, niveau indépendant, aire fixe.
-def generate_irregular_boundary_mesh(xmin, xmax, ymin, ymax, nelemsx, nelemsy,
+# Réponse Maillage Q10 — Frontière fractale auto-affine, niveau indépendant, aire fixe.
+def generate_fractal_boundary_mesh(xmin, xmax, ymin, ymax, nelemsx, nelemsy,
                                      level=1, amplitude=0.05, quadrangles=False):
     bounds = np.array([xmin, xmax, ymin, ymax, amplitude], dtype=float)
     if not np.isfinite(bounds).all() or xmax <= xmin or ymax <= ymin:
@@ -324,13 +324,25 @@ def generate_irregular_boundary_mesh(xmin, xmax, ymin, ymax, nelemsx, nelemsy,
             raise ValueError("Les résolutions et le niveau doivent être entiers.")
     if nelemsx < 1 or nelemsy < 1 or level < 0:
         raise ValueError("Résolutions positives et niveau positif ou nul requis.")
-    if amplitude < 0 or amplitude >= ymax-ymin:
-        raise ValueError("L'amplitude doit être inférieure à la hauteur du domaine.")
-    if level > 0 and (amplitude == 0 or nelemsx < 4*level):
-        raise ValueError("Niveau non nul : amplitude positive et au moins quatre intervalles par période.")
+    # Q10 : g est polygonale ; chaque niveau réduit l'échelle horizontale
+    # par 2 et l'échelle verticale par 0.6 (construction auto-affine).
+    ratio = 0.6
+    if amplitude < 0 or amplitude/(1-ratio) >= ymax-ymin:
+        raise ValueError("La borne amplitude/(1-0.6) doit rester inférieure à la hauteur.")
+    if level > 0 and (amplitude == 0 or (1 << (level+1)) > nelemsx
+                      or nelemsx % (1 << (level+1))):
+        raise ValueError("Le maillage doit résoudre tous les sommets : nx multiple de 2**(niveau+1).")
     x = np.linspace(xmin, xmax, nelemsx+1)
     eta = np.linspace(0, 1, nelemsy+1)
-    d = amplitude*np.sin(2*np.pi*level*(x-xmin)/(xmax-xmin))
+    t = (x-xmin)/(xmax-xmin)
+    d = np.zeros_like(t)
+    for iteration in range(level):
+        z = np.mod((2**iteration)*t, 1.0)
+        # Motif signé : triangle positif sur [0,1/2], négatif sur [1/2,1].
+        local = np.mod(2*z, 1.0)
+        tent = 1-np.abs(2*local-1)
+        motif = np.where(z < .5, tent, -tent)
+        d += amplitude*ratio**iteration*motif
     d[[0, -1]] = 0.0
     X, E = np.meshgrid(x, eta)
     Y = ymin+E*((ymax-ymin)+d)
@@ -399,10 +411,10 @@ def check_mesh_implementation():
     np.testing.assert_allclose(compute_barycenter(trapezoid, np.array([0, 4]),
                                                 np.array([0, 1, 2, 3]), 0), [7/9, 4/9])
     for level in range(5):
-        mesh = generate_irregular_boundary_mesh(0, 1, 0, 1, 20, 20, level)
+        mesh = generate_fractal_boundary_mesh(0, 1, 0, 1, 64, 20, level)
         np.testing.assert_allclose(compute_areas(*mesh).sum(), 1., atol=1e-13)
         boundary = get_boundary_mesh(*mesh)
-        assert len(boundary.l2g) == 80 and len(boundary.owners) == 80
+        assert len(boundary.l2g) == 168 and len(boundary.owners) == 168
         assert boundary.elem2nodes.max() < len(boundary.node_coords)
         edges = boundary.l2g[boundary.elem2nodes.reshape(-1, 2)]
         owners = mesh[2].reshape(-1, 3)[boundary.owners]
@@ -412,7 +424,14 @@ def check_mesh_implementation():
         np.testing.assert_array_equal(shifted, shift_internal_nodes(*mesh))
         np.testing.assert_allclose(compute_areas(shifted, mesh[1], mesh[2]).sum(), 1., atol=1e-13)
         validate_geometry(shift_nodes(*mesh), mesh[1], mesh[2])
-    quad = generate_irregular_boundary_mesh(0, 1, 0, 1, 2, 2, 0, quadrangles=True)
+    coarse = generate_fractal_boundary_mesh(0, 1, 0, 1, 32, 4, level=3)
+    fine = generate_fractal_boundary_mesh(0, 1, 0, 1, 64, 8, level=3)
+    np.testing.assert_allclose(coarse[0][-33:, 1], fine[0][-65::2, 1])
+    top = fine[0][-65:]
+    np.testing.assert_allclose(top[:, 1]+top[::-1, 1], 2., atol=1e-14)
+    different = generate_fractal_boundary_mesh(0, 1, 0, 1, 64, 8, level=4)
+    assert not np.allclose(top[:, 1], different[0][-65:, 1])
+    quad = generate_fractal_boundary_mesh(0, 1, 0, 1, 2, 2, 0, quadrangles=True)
     tri = split_quads_to_tris(*quad)
     assert len(tri[1])-1 == 8
     np.testing.assert_allclose(compute_areas(*quad).sum(), compute_areas(*tri).sum())
@@ -431,7 +450,7 @@ def check_mesh_implementation():
         np.testing.assert_array_equal(actual, original)
     invalid_actions = [lambda: remove_node(xy, p, conn, 1),
                        lambda: add_element(xy, p, conn, [0, 1, 2]),
-                       lambda: generate_irregular_boundary_mesh(0, 1, 0, 1, 20, 20, 10),
+                       lambda: generate_fractal_boundary_mesh(0, 1, 0, 1, 20, 20, 10),
                        lambda: shift_internal_nodes(*mesh, magnitude=10),
                        lambda: split_quads_to_tris(np.array([[0., 0.], [1., 1.], [0., 1.], [1., 0.]]), cp, cc)]
     for action in invalid_actions:
@@ -464,15 +483,22 @@ def main():
     if args.check_only:
         return
     DATA.mkdir(parents=True, exist_ok=True)
-    mesh = generate_irregular_boundary_mesh(0, 1, 0, 1, 20, 20, level=3)
+    mesh = generate_fractal_boundary_mesh(0, 1, 0, 1, 64, 20, level=3)
     results = plot_mesh_analysis(*mesh)
-    results["levels"] = {str(level): mesh_statistics(*generate_irregular_boundary_mesh(0, 1, 0, 1, 20, 20, level))
+    results["levels"] = {str(level): mesh_statistics(*generate_fractal_boundary_mesh(0, 1, 0, 1, 64, 20, level))
                          for level in range(5)}
-    results["parameters"] = {"nx": 20, "ny": 20, "amplitude": .05, "level": 3,
+    results["parameters"] = {"nx": 64, "ny": 20, "amplitude": .05, "level": 3, "vertical_ratio": .6, "boundary": "self_affine_fractal",
                              "shift_direction": [1., 0.], "shift_magnitude": .1,
                              "edge_convention": "mean"}
     results["checks"] = checks
     (DATA/"mesh_results.json").write_text(json.dumps(results, indent=2, ensure_ascii=False)+"\n", encoding="utf-8")
+    fig, ax = plt.subplots(figsize=(9, 3.2))
+    for level in range(5):
+        points = generate_fractal_boundary_mesh(0, 1, 0, 1, 64, 1, level)[0][-65:]
+        ax.plot(points[:, 0], points[:, 1], label=f"Niveau {level}", lw=1.2)
+    ax.set(xlabel="x", ylabel="Hauteur du bord", title="Approximations de la frontière fractale")
+    ax.legend(ncol=3, fontsize=8); ax.grid(alpha=.25); fig.tight_layout()
+    fig.savefig(FIGURES/"fractal_levels.png", dpi=180); plt.close(fig)
     headers = r"Niveau & Aire totale & Aire min. & $Q_{\max}$ & $E_{\min}$ & Angle min. ($^\circ$)" + " " + chr(92)*2
     rows = [f"{level} & {r['area']:.12f} & {r['area_min']:.6f} & {r['aspect_max']:.4f} & "
             f"{r['edge_min']:.4f} & {r['angle_min_deg']:.2f}"+r" \\"

@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import scipy.linalg as la
 import fem_implementation as fem
-from mesh_implementation import generate_irregular_boundary_mesh
+from mesh_implementation import generate_fractal_boundary_mesh
 import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parent
@@ -19,7 +19,7 @@ def compare_choices():
     """Q1/Q2 : stockage plein/CSR et erreur nodale interpolée/continue."""
     rows = []
     for nx in (16, 32, 64, 128):
-        xy, p, conn = generate_irregular_boundary_mesh(0, 1, 0, 1, nx, nx//4, level=0)
+        xy, p, conn = generate_fractal_boundary_mesh(0, 1, 0, 1, nx, nx//4, level=0)
         geo = fem.prepare_geometry(xy, p, conn)
         K, M, F = fem.fem_assembly(p, conn, xy, geometry=geo)
         k = 3*np.pi

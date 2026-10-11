@@ -120,23 +120,23 @@ Le code peut déplacer tous les nœuds pour Q4. Après déplacement, chaque aire
 Cette partie traite la question Q5.
 
 \paragraph{Alternative envisagée et résultat.}
-Une détection par les coordonnées extrêmes convient au rectangle initial, mais manquerait les points du bord supérieur vérifiant $y=1+0,05\sin(2\pi Lx)\neq1$. Pour Q5, le comptage des incidences répond donc mieux à la famille de domaines étudiée. Il suppose néanmoins un maillage conforme : cette hypothèse accompagne le choix de la méthode.
+Une détection par les coordonnées extrêmes convient au rectangle initial, mais manquerait les points du bord supérieur vérifiant $y=1+d_L(x)\neq1$. Pour Q5, le comptage des incidences répond donc mieux à la famille de domaines étudiée. Il suppose néanmoins un maillage conforme : cette hypothèse accompagne le choix de la méthode.
 
 \paragraph{Méthode retenue et résultat.}
-Une arête est de bord lorsqu'elle appartient à un seul élément. Les nœuds de ces arêtes forment l'ensemble $B$. Le déplacement interne applique la règle précédente uniquement à $j\notin B$ ; pour $j\in B$, $P'_j=P_j$ exactement. La frontière est détectée topologiquement, sans comparer les coordonnées à des valeurs comme $y=1$, ce qui serait faux sur un bord sinusoïdal.
+Une arête est de bord lorsqu'elle appartient à un seul élément. Les nœuds de ces arêtes forment l'ensemble $B$. Le déplacement interne applique la règle précédente uniquement à $j\notin B$ ; pour $j\in B$, $P'_j=P_j$ exactement. La frontière est détectée topologiquement, sans comparer les coordonnées à des valeurs comme $y=1$, ce qui serait faux sur un bord fractal.
 
 La direction choisie pour les études est $(1,0)$ et $\mu=0,1$. Il n'y a aucune génération aléatoire de déplacement. La construction est faite une fois par résolution, avant la boucle sur $k$. Deux exécutions avec les mêmes paramètres produisent donc les mêmes coordonnées et les mêmes solutions à précision machine. La génération d'une direction de déformation est annoncée comme extension de difficulté élevée dans l'énoncé ; nous utilisons une direction fixe explicitement documentée.
 
 \subsection{Analyse quantitative et histogrammes}
 Cette partie traite la question Q6.
 
-Pour répondre à la question Q6, l'analyse utilise le niveau 3 de la frontière irrégulière dont la construction sera détaillée pour Q10 ; elle compare le maillage obtenu avec sa version déplacée intérieurement. Les deux versions comportent 441 nœuds et 800 triangles. L'aire totale est 1 dans les deux cas. Avant déplacement, l'aire minimale vaut environ $1,1875\times10^{-3}$ ; après déplacement elle vaut $1,0614\times10^{-3}$. Aucune aire n'est quasi nulle ou négative.
-\resultfigure{mesh_comparison.png}{Frontière irrégulière de niveau 3, avant et après déplacement interne. Les coordonnées du bord restent fixes.}{1}
+Pour répondre à la question Q6, l'analyse utilise le niveau 3 de la frontière fractale dont la construction sera détaillée pour Q10 ; elle compare le maillage obtenu avec sa version déplacée intérieurement. Les deux versions comportent 1365 nœuds et 2560 triangles. L'aire totale est 1 dans les deux cas. Avant déplacement, l'aire minimale vaut environ $3,6914\times10^{-4}$ ; après déplacement elle vaut $2,9031\times10^{-4}$. Aucune aire n'est quasi nulle ou négative.
+\resultfigure{mesh_comparison.png}{Frontière fractale de niveau 3, avant et après déplacement interne. Les coordonnées du bord restent fixes.}{1}
 
 Les histogrammes des aires montrent la redistribution des tailles après déplacement, tout en conservant l’aire totale.
 \resultfigure{Figure1.png}{Distribution des aires, avant et après déplacement.}{0.8}
 
-Le rapport d'aspect maximal passe d'environ 2,7923 à 3,3579, et l'angle minimal de $19,95^\circ$ à $16,81^\circ$. Le déplacement choisi dégrade donc certains éléments ; il n'est pas présenté comme un algorithme d'amélioration du maillage. Le facteur d'arête minimal passe de 0,6570 à 0,6521. Les histogrammes utilisent les mêmes classes pour les deux versions afin de rendre la comparaison pertinente.
+Le rapport d'aspect maximal passe d'environ 3,1506 à 3,4639, et l'angle minimal de $13,97^\circ$ à $12,77^\circ$. Le déplacement choisi dégrade donc certains éléments ; il n'est pas présenté comme un algorithme d'amélioration du maillage. Le facteur d'arête minimal passe de 0,3767 à 0,3134. Les histogrammes utilisent les mêmes classes pour les deux versions afin de rendre la comparaison pertinente.
 \resultfigure{Figure2.png}{Rapport d'aspect défini dans le cours.}{0.8}
 
 Le facteur de longueur d’arête compare la plus petite arête à la moyenne des trois longueurs. Sa distribution complète celle du rapport d’aspect.
@@ -181,50 +181,46 @@ Cette partie traite les questions Q9(i)--Q9(iv).
 \end{enumerate}
 Les modifications sont vérifiées par des opérations inverses d'ajout et de suppression, en contrôlant la cohérence de la connectivité.
 
-\subsection{Frontière irrégulière à aire constante}
-Cette partie traite la question Q10.
+\subsection{Frontière fractale à aire constante}
+Cette partie traite la question Q10 dans sa première formulation : une forme fractale est construite sur le bord supérieur, avec un niveau indépendant de la résolution du maillage.
 
-\subsubsection{Alternative autorisée et niveau}
-\paragraph{Alternatives envisagées et limites.}
-Pour Q10, une construction fractale est une autre réponse explicitement proposée par l'énoncé ; elle n'est pas inférieure à la sinusoïde, mais impose une construction conforme et un contrôle d'aire supplémentaires. L'alternative sinusoïdale permet une preuve simple de conservation. Déplacer seulement le bord supérieur paraît moins coûteux, mais la dernière épaisseur devient $1/n_y+d_L(x)$ : avec $n_y=20$ et $d_L=-0,05$, elle est nulle. La déformation répartie conserve au contraire une épaisseur $(1+d_L)/n_y>0$.
-\resulttable{mesh_levels.tex}{Cinq niveaux, amplitude 0,05 et résolution $20\times20$. Toutes les cellules ont une orientation positive.}
-
-\paragraph{Méthode retenue et résultat.}
-Nous choisissons l'alternative explicitement autorisée à la question Q10 : une frontière irrégulière non fractale, avec niveau contrôlé et aire constante. Pour un rectangle de largeur $W$ et de hauteur $H$, la déformation est
+On définit un motif polygonal $g$ sur $[0,1]$, passant successivement par $(0,0)$, $(1/4,1)$, $(1/2,0)$, $(3/4,-1)$ et $(1,0)$, prolongé périodiquement. Pour $t=(x-x_{\min})/W$, poser
 \begin{equation*}
-d_L(x)=a\sin\left(2\pi L\frac{x-x_{\min}}{W}\right),\qquad
-x\in[x_{\min},x_{\max}],\quad L\in\mathbb N.
+d_L(x)=a\sum_{j=0}^{L-1}r^j g(2^j t),\qquad r=0,6,\quad a=0,05,
 \end{equation*}
-$L$ définit le nombre de périodes ; il est indépendant des résolutions $n_x,n_y$. $L=0$ retrouve le rectangle. L'amplitude par défaut est $a=0,05$ et doit satisfaire $0\leq a<H$ ; un niveau positif exige une amplitude positive.
+avec $d_0=0$. À chaque niveau, une copie du même motif est ajoutée à une échelle horizontale divisée par deux et une échelle verticale multipliée par $r$. Il s'agit d'une construction auto-affine ; les niveaux finis sont des courbes polygonales, et non des fractales infinies stockées exactement.
 
-Le niveau ne doit pas être confondu avec la résolution du bord. La condition $n_x\geq4L$ impose au moins quatre intervalles par période. C'est une exigence de résolution minimale, et non une preuve de précision géométrique élevée. Sans contrôle, $L=10,n_x=20$ ne produirait que des zéros de la sinusoïde et ferait disparaître la géométrie demandée. Ce cas est refusé.
+\paragraph{Caractère fractal de la construction.}
+La série limite $F(t)=\sum_{j\geq0}r^jg(2^jt)$ converge uniformément car $|g|\leq1$ et $r<1$. Elle vérifie $F(t)=g(t)+rF(2t)$ avec prolongement périodique, exprimant la répétition du motif à différentes échelles. Pour $t_m=2^{-(m+2)}$, les termes jusqu'à $j=m$ sont sur la première pente du motif, et les suivants sont nuls. Ainsi
+\begin{equation*}
+\frac{F(t_m)-F(0)}{t_m}=4\sum_{j=0}^{m}(2r)^j\longrightarrow+\infty.
+\end{equation*}
+Les petites échelles ajoutent donc une rugosité persistante : la limite n'est pas une simple courbe polygonale lisse. On ne revendique pas ici le calcul de sa dimension fractale.
+
+La borne $|d_L|\leq a/(1-r)=0,125$ garantit une hauteur positive sur le carré unité. Les sommets du niveau $L$ sont situés sur une grille de pas $W/2^{L+1}$. On exige, pour $L>0$, que $n_x$ soit un multiple de $2^{L+1}$ : tous les sommets de la frontière sont alors représentés exactement. Le niveau est choisi séparément de $n_x$ ; une résolution incompatible est refusée plutôt que de supprimer des détails de la géométrie.
+
+Les niveaux 0 à 4 sont représentés ci-dessous sur une même résolution horizontale $n_x=64$. Le raffinement du maillage à niveau fixé subdivise les segments existants, sans changer la frontière.
+\resultfigure{fractal_levels.png}{Approximations polygonales successives de la frontière fractale, amplitude initiale 0,05 et rapport vertical 0,6.}{1}
 
 \subsubsection{Application sur toutes les rangées}
-Sur les niveaux uniformes $\eta_j=j/n_y$, on pose
+Pour $\eta_j=j/n_y$, la transformation est
 \begin{equation}\label{eq:mapping}
-x_i=x_{\min}+iW/n_x,\qquad
- y_{i,j}=y_{\min}+\eta_j\bigl(H+d_L(x_i)\bigr).
+x_i=x_{\min}+iW/n_x,\qquad y_{i,j}=y_{\min}+\eta_j\bigl(H+d_L(x_i)\bigr).
 \end{equation}
-Le bord inférieur est fixe et le bord supérieur suit la sinusoïde. Les rangées intermédiaires répartissent la déformation. La hauteur $H+d_L(x_i)$ reste strictement positive. Dans la version antérieure, seule la rangée supérieure était déplacée : pour $n_y=20$, une amplitude de 0,05 pouvait annuler une hauteur de cellule de 0,05. L'application \eqref{eq:mapping} supprime cette collision.
-
-Chaque cellule est découpée suivant la même diagonale. Ses deux triangles ont respectivement les aires
+L'application \eqref{eq:mapping} répartit la déformation sur toute la hauteur. Puisque $H+d_L>0$, chaque colonne reste ordonnée et les triangles sont non dégénérés. Leurs aires sont
 \begin{equation*}
 \frac{\Delta x\Delta\eta}{2}(H+d_L(x_i)),\qquad
-\frac{\Delta x\Delta\eta}{2}(H+d_L(x_{i+1})),
+\frac{\Delta x\Delta\eta}{2}(H+d_L(x_{i+1})).
 \end{equation*}
-qui sont positives. Cette propriété justifie la validité de la construction ; elle est aussi contrôlée numériquement.
 
-\subsubsection{Preuve de conservation de l'aire discrète}
-En sommant sur les rangées et les colonnes,
+\subsubsection{Preuve de conservation de l'aire}
+Le motif vérifie $g(1-t)=-g(t)$ ; chaque terme périodique conserve cette antisymétrie. Ainsi $d_L(x_{\min}+x_{\max}-x)=-d_L(x)$ et ses valeurs aux extrémités sont nulles. La somme trapézoïdale sur les abscisses uniformes est donc exactement nulle en arithmétique exacte :
 \begin{equation*}
 |\Omega_h|=\sum_{i=0}^{n_x-1}\frac{\Delta x}{2}
-\left(2H+d_L(x_i)+d_L(x_{i+1})\right).
+\left(2H+d_L(x_i)+d_L(x_{i+1})\right)=WH.
 \end{equation*}
-Les valeurs aux extrémités sont nulles. Pour $L$ entier, les valeurs de sinus aux points uniformes se compensent deux à deux par la symétrie $d_L(x_{n_x-i})=-d_L(x_i)$. La somme trapézoïdale des perturbations est donc nulle, d'où $|\Omega_h|=WH$ en arithmétique exacte. Le domaine polygonal discrétisé et le domaine lisse possèdent ainsi la même aire ; leurs frontières ne sont pas identiques.
-
-Le calcul impose exactement zéro aux deux extrémités et vérifie la somme des aires à une tolérance relative de $10^{-12}$. Les cinq niveaux 0 à 4 sont testés à résolution constante $20\times20$. La conservation n'est pas déduite de la forme d'un histogramme.
-
-
+L'intégrale du relief est également nulle. Chaque approximation polygonale et le domaine limite ont la même aire ; aucune correction globale des coordonnées n'est nécessaire. Les niveaux 0 à 4 sont vérifiés à résolution constante $64\times20$, à une tolérance relative de $10^{-12}$.
+\resulttable{mesh_levels.tex}{Qualité des cinq niveaux fractals sur $64\times20$ ; aire totale égale à 1 et triangles positifs.}
 
 \subsection{Sous-maillage de frontière}
 Cette partie traite la question Q11.
@@ -237,7 +233,7 @@ P^\Gamma_j=P_{\mathrm{l2g}_\Gamma(j)}.
 \end{equation*}
 La numérotation locale des nœuds est indépendante de celle des éléments de bord. Elle n'est pas nécessairement un parcours par abscisse curviligne : aucune telle hypothèse n'est utilisée pour l'assemblage ou pour la détection de Dirichlet. La question facultative est ainsi traitée avec la structure de données demandée, et non seulement par une liste d'arêtes globales.
 
-Sur le cas $20\times20$, la frontière comporte 80 nœuds et 80 segments. Les tests vérifient les bornes de connectivité locale, la correspondance vers les coordonnées globales et l'appartenance des extrémités au triangle propriétaire.
+Sur le cas $64\times20$, la frontière comporte 168 nœuds et 168 segments. Les tests vérifient les bornes de connectivité locale, la correspondance vers les coordonnées globales et l'appartenance des extrémités au triangle propriétaire.
 
 \clearpage
 \section{Méthode des éléments finis}
@@ -527,7 +523,7 @@ Le nombre de fréquences reste faible. L'onde ne varie pas selon $y$ alors que $
 Les choix retenus reposent sur les structures de maillage, l'approximation $P_1$, l'assemblage creux et les principes de résolution présentés dans les supports du cours. Les comparaisons d'alternatives complètent l'analyse des questions ; elles ne constituent pas un historique de tentatives antérieures ni une démonstration d'optimalité universelle.
 
 \section*{Conclusion}
-Les fonctions de maillage répondent aux dix questions obligatoires et à l'extraction facultative de frontière, avec les pseudo-pointeurs du cours. La frontière sinusoïdale est l'alternative autorisée, son aire est conservée par construction, et les cas sous-échantillonnés ou dégénérés sont refusés. Le déplacement interne est déterministe et conserve les coordonnées du bord.
+Les fonctions de maillage répondent aux dix questions obligatoires et à l'extraction facultative de frontière, avec les pseudo-pointeurs du cours. La frontière fractale répond à la construction demandée, son aire est conservée à chaque niveau, et les cas sous-échantillonnés ou dégénérés sont refusés. Le déplacement interne est déterministe et conserve les coordonnées du bord.
 
 Les études FEM répondent aux demandes de Q1 et Q2 pour les trois normes, avec calcul des pentes séparées, des exposants conjoints, des surfaces et de la quantité combinée. Les erreurs $L^2$ et $H^1$ sont celles de l'erreur continue intégrée, et le maximum intérieur reste explicitement estimé. À $k=\pi$, les ordres mesurés sont proches de 2 en $L^2$ et de 1 en $H^1$. La déformation augmente certaines erreurs, surtout sur les maillages grossiers, mais les tendances de raffinement sont préservées dans les cas étudiés.
 

@@ -15,7 +15,7 @@ from scipy import sparse
 from scipy.sparse import linalg as spla
 from mesh_implementation import (
     ROOT, FIGURES, DATA, validate_geometry, triangle_geometry, get_boundary_mesh,
-    generate_irregular_boundary_mesh, shift_internal_nodes, mesh_statistics,
+    generate_fractal_boundary_mesh, shift_internal_nodes, mesh_statistics,
     check_mesh_implementation,
 )
 import matplotlib.pyplot as plt
@@ -282,7 +282,7 @@ def run_convergence_study(shifted=False, nx_values=DEFAULT_NX, k_values=DEFAULT_
         if not isinstance(nx, (int, np.integer)) or nx < 4 or nx % 4:
             raise ValueError("nx doit être un multiple de 4, supérieur ou égal à 4.")
         ny = nx//4
-        mesh = generate_irregular_boundary_mesh(0, 1, 0, 1, nx, ny, level=0)
+        mesh = generate_fractal_boundary_mesh(0, 1, 0, 1, nx, ny, level=0)
         xy, p, conn = mesh
         # Réponse FEM Q2 — Déplacement déterministe construit une seule fois par résolution.
         if shifted:
@@ -511,7 +511,7 @@ def check_fem_implementation():
     np.testing.assert_allclose(Me, (np.ones((3, 3))+np.eye(3))/24)
     np.testing.assert_allclose(Ke @ np.ones(3), 0, atol=1e-14)
     np.testing.assert_allclose(Me.sum(), .5)
-    mesh = generate_irregular_boundary_mesh(0, 1, 0, 1, 8, 4, 0)
+    mesh = generate_fractal_boundary_mesh(0, 1, 0, 1, 8, 4, 0)
     geo = prepare_geometry(*mesh)
     K, M, F = fem_assembly(mesh[1], mesh[2], mesh[0], geometry=geo)
     np.testing.assert_allclose((K-K.T).data, 0., atol=1e-14)

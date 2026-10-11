@@ -51,7 +51,6 @@ Plusieurs solutions simples sont correctes dans un cadre restreint, mais ne conv
 \item Pour Q1, l'aire absolue ne distingue pas deux orientations opposées : le signe est contrôlé séparément.
 \item Pour Q4, un déplacement absolu fixe devient deux fois plus fort relativement à $h$ à chaque raffinement ; on retient $\mu\ell_j$.
 \item Pour Q7, le trapèze $(0,0),(2,0),(1,1),(0,1)$ donne une moyenne des sommets $(3/4,1/2)$, différente du centroïde $(7/9,4/9)$.
-\item Pour Q10, déplacer seulement le haut peut annuler la dernière épaisseur : $1/20-0,05=0$. La déformation répartie la conserve positive.
 \end{itemize}
 Ces exemples motivent les contrôles et les constructions détaillés ensuite. Une direction aléatoire fixée ou une autre diagonale restent des alternatives valables.
 \end{frame}
@@ -90,9 +89,9 @@ Les signes des aires sont contrôlés après déplacement. Une amplitude qui inv
 \end{frame}
 
 \begin{frame}{Comparaison avant et après déplacement}
-Pour Q6, on compare 441 nœuds et 800 triangles sur une frontière irrégulière de niveau 3, dont la construction sera précisée pour Q10. Le déplacement interne conserve le contour.
+Pour Q6, on compare 1365 nœuds et 2560 triangles sur une frontière fractale de niveau 3, dont la construction sera précisée pour Q10. Le déplacement interne conserve le contour.
 \begin{center}\includegraphics[width=.95\textwidth,height=.50\textheight,keepaspectratio]{../report/figures/mesh_comparison.png}\end{center}
-L'aire totale reste égale à 1 ; l'aire minimale passe de $1,1875\times10^{-3}$ à $1,0614\times10^{-3}$, sans inversion.
+L'aire totale reste égale à 1 ; l'aire minimale passe de $3,6914\times10^{-4}$ à $2,9031\times10^{-4}$, sans inversion.
 \end{frame}
 
 \begin{frame}{Interprétation des indicateurs géométriques}
@@ -102,9 +101,9 @@ La comparaison de Q6 montre une dégradation locale de la forme. Les histogramme
 \small
 \begin{tabular}{lrr}\toprule
 Indicateur & Avant & Après \\\midrule
-Aspect maximal & 2,7923 & 3,3579 \\
-Facteur d'arête minimal & 0,6570 & 0,6521 \\
-Angle minimal & $19,95^\circ$ & $16,81^\circ$ \\\bottomrule
+Aspect maximal & 3,1506 & 3,4639 \\
+Facteur d'arête minimal & 0,3767 & 0,3134 \\
+Angle minimal & $13,97^\circ$ & $12,77^\circ$ \\\bottomrule
 \end{tabular}
 
 \medskip
@@ -129,19 +128,23 @@ Les triangles des maillages mixtes sont conservés. Les opérations topologiques
 \end{block}
 \end{frame}
 
-\begin{frame}{Frontière irrégulière à aire constante}
-Pour Q10, on retient l'alternative sinusoïdale autorisée. Sur le carré unité :
+\begin{frame}{Construction d'une frontière fractale}
+Pour Q10, le motif polygonal $g$ passe par les hauteurs $0,1,0,-1,0$ aux abscisses $0,1/4,1/2,3/4,1$ et est prolongé périodiquement.
 \[
-d_L(x)=0,05\sin(2\pi Lx),\qquad y(x,\eta)=\eta\bigl(1+d_L(x)\bigr).
+d_L(x)=0,05\sum_{j=0}^{L-1}0,6^j g(2^jx),\qquad d_0=0.
 \]
 \begin{itemize}
-\item Le niveau entier $L$ fixe le nombre de périodes, indépendamment de $n_x,n_y$ ; $L=0$ retrouve le carré.
-\item La déformation est répartie sur toutes les rangées et la hauteur reste positive.
-\item La condition $n_x\geq4L$ évite la disparition du relief par sous-échantillonnage.
+\item Chaque niveau ajoute le motif à une échelle horizontale divisée par deux et verticale multipliée par 0,6.
+\item La série limite converge ; les pentes aux petites échelles croissent comme $\sum_j1,2^j$. Les niveaux finis sont ses approximations polygonales.
+\item Le niveau est indépendant de la résolution ; $n_x$ doit être multiple de $2^{L+1}$ pour représenter tous les sommets.
 \end{itemize}
-\begin{block}{Conservation de l'aire}
-Les perturbations aux abscisses uniformes se compensent deux à deux. Leur somme trapézoïdale est nulle : l'aire polygonale vaut 1. Les niveaux 0 à 4 sont vérifiés à $10^{-12}$ relatif.
-\end{block}
+La hauteur reste positive puisque $|d_L|\leq0,125<1$.
+\end{frame}
+
+\begin{frame}{Niveaux fractals et conservation de l'aire}
+L'antisymétrie $d_L(1-x)=-d_L(x)$ annule la somme trapézoïdale du relief. L'aire reste égale à 1 à chaque niveau.
+\begin{center}\includegraphics[width=.9\textwidth,height=.43\textheight,keepaspectratio]{../report/figures/fractal_levels.png}\end{center}
+La transformation $y(x,\eta)=\eta(1+d_L(x))$ répartit la déformation sur toutes les rangées. Les niveaux 0 à 4 sont contrôlés sur $64\times20$ : aire conservée et triangles positifs.
 \end{frame}
 
 \begin{frame}{Extraction du sous-maillage de frontière}
@@ -155,7 +158,7 @@ P^\Gamma_j=P_{\mathrm{l2g}_\Gamma(j)}.
 \item La correspondance $\mathrm{l2g}_\Gamma$ et l'élément volumique adjacent sont conservés.
 \end{itemize}
 \begin{block}{Vérification}
-Sur le maillage $20\times20$, le bord comporte 80 nœuds et 80 segments. Les indices locaux et leur correspondance vers les coordonnées globales sont contrôlés.
+Sur le maillage $64\times20$, le bord comporte 168 nœuds et 168 segments. Les indices locaux et leur correspondance vers les coordonnées globales sont contrôlés.
 \end{block}
 \end{frame}
 
@@ -319,7 +322,7 @@ Ces indicateurs étayent l'analyse sans démontrer une domination générale de 
 
 \begin{frame}{Conclusion}
 \begin{block}{Maillage}
-Les aires, la forme et la frontière sont contrôlées. La déformation sinusoïdale conserve l'aire et le déplacement interne conserve exactement le bord.
+Les aires, la forme et la frontière sont contrôlées. La construction fractale conserve l'aire à chaque niveau et le déplacement interne conserve exactement le bord.
 \end{block}
 \begin{block}{Méthode des éléments finis}
 Les erreurs continues montrent une convergence proche de l'ordre 2 en $L^2$ et de l'ordre 1 en $H^1$ à $k=\pi$. Le déplacement modifie surtout les erreurs sur les maillages grossiers.
