@@ -86,3 +86,5 @@ Les versions utilisées sont NumPy 2.5.3, SciPy 1.18.1 et Matplotlib 3.11.2. Les
 ## Origine des fichiers
 
 Les documents pédagogiques fournis par le professeur sont les PDF des supports et des énoncés. Les maillages utilisés dans les simulations sont construits directement en Python : aucun fichier externe de nœuds ou d’éléments n’est requis. Les CSV, JSON, tableaux LaTeX et figures sont des sorties produites pour ce projet. `compare_choices.py` reproduit les comparaisons complémentaires, sans constituer un outil ou une donnée fournis par le professeur. La fonction `load_mesh` est un utilitaire facultatif, non utilisé par les simulations du devoir.
+
+Pour Q7, le barycentre est la moyenne des sommets de poids égaux (centroïde surfacique pour un triangle ou un parallélogramme). Pour Q8, le découpage est limité aux quadrangles strictement convexes à sommets ordonnés, suivant la diagonale (0,2). Les cellules concaves, croisées ou dégénérées sont refusées.

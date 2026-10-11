@@ -50,7 +50,6 @@ Plusieurs solutions simples sont correctes dans un cadre restreint, mais ne conv
 \begin{itemize}
 \item Pour Q1, l'aire absolue ne distingue pas deux orientations opposées : le signe est contrôlé séparément.
 \item Pour Q4, un déplacement absolu fixe devient deux fois plus fort relativement à $h$ à chaque raffinement ; on retient $\mu\ell_j$.
-\item Pour Q7, le trapèze $(0,0),(2,0),(1,1),(0,1)$ donne une moyenne des sommets $(3/4,1/2)$, différente du centroïde $(7/9,4/9)$.
 \end{itemize}
 Ces exemples motivent les contrôles et les constructions détaillés ensuite. Une direction aléatoire fixée ou une autre diagonale restent des alternatives valables.
 \end{frame}
@@ -118,8 +117,8 @@ Le déplacement conserve la validité du maillage, mais ne constitue pas un algo
 \begin{frame}{Barycentre, subdivision et opérations topologiques}
 Les questions Q7 à Q9 complètent les outils de manipulation du maillage.
 \begin{itemize}
-\item \textbf{Q7 :} centroïde surfacique ; pour un triangle, $G=(P_0+P_1+P_2)/3$.
-\item \textbf{Q8 :} découpage des quadrangles par une diagonale admissible ; orientations et somme des aires conservées.
+\item \textbf{Q7 :} barycentre des sommets de poids égaux ; pour un triangle, $G=(P_0+P_1+P_2)/3$.
+\item \textbf{Q8 :} découpage des quadrangles convexes ordonnés suivant $(P_0,P_2)$ ; orientations et somme des aires conservées.
 \item \textbf{Q9(i)--(ii) :} ajout ou suppression d'un élément, avec reconstruction de la connectivité et des pseudo-pointeurs.
 \item \textbf{Q9(iii)--(iv) :} ajout d'un nœud isolé ; suppression seulement s'il n'est plus référencé, puis renumérotation des indices suivants.
 \end{itemize}

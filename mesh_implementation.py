@@ -55,27 +55,13 @@ def _signed_polygon_area(points):
     return 0.5 * np.sum(_cross(q, np.roll(q, -1, axis=0)))
 
 def _quad_triangles(points):
-    """Choisit une diagonale interne, y compris pour un quadrangle concave simple."""
-    area = _signed_polygon_area(points)
+    """Q8 : diagonale (0,2) d'un quadrangle strictement convexe et ordonné."""
+    edges = np.roll(points, -1, axis=0)-points
+    turns = _cross(edges, np.roll(edges, -1, axis=0))
     tol = _area_tolerance(points)
-    if abs(area) <= tol:
-        raise ValueError("Quadrangle dégénéré ou croisé.")
-    # Les arêtes opposées ne peuvent pas se couper dans une cellule simple.
-    for a, b, c, d in [(0, 1, 2, 3), (1, 2, 3, 0)]:
-        q = points
-        ca = _cross(q[b]-q[a], q[c]-q[a])
-        da = _cross(q[b]-q[a], q[d]-q[a])
-        ac = _cross(q[d]-q[c], q[a]-q[c])
-        bc = _cross(q[d]-q[c], q[b]-q[c])
-        if ca * da < 0 and ac * bc < 0:
-            raise ValueError("Quadrangle à arêtes croisées.")
-    for tris in [((0, 1, 2), (0, 2, 3)), ((0, 1, 3), (1, 2, 3))]:
-        parts = [_signed_polygon_area(points[list(t)]) for t in tris]
-        if all(np.sign(area)*v > tol for v in parts):
-            if not np.isclose(sum(parts), area, rtol=1e-12, atol=tol):
-                raise ValueError("Le découpage ne conserve pas l'aire.")
-            return tris
-    raise ValueError("Aucune diagonale ne produit deux triangles non dégénérés.")
+    if not (np.all(turns > tol) or np.all(turns < -tol)):
+        raise ValueError("Le découpage exige un quadrangle convexe, non dégénéré et ordonné.")
+    return ((0, 1, 2), (0, 2, 3))
 
 def validate_geometry(node_coords, p_elem2nodes, elem2nodes, positive=True):
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
@@ -242,7 +228,7 @@ def plot_mesh_analysis(node_coords, p_elem2nodes, elem2nodes, output_dir=FIGURES
     plt.close(fig)
     return {"before": mesh_statistics(*base), "after": mesh_statistics(*shifted)}
 
-# Réponse Maillage Q7 — Centroïde surfacique (moyenne des sommets pour un triangle).
+# Réponse Maillage Q7 — Barycentre des sommets, de poids égaux.
 def compute_barycenter(node_coords, p_elem2nodes, elem2nodes, elemid):
     xy, p, conn = validate_connectivity(node_coords, p_elem2nodes, elem2nodes)
     if not isinstance(elemid, (int, np.integer)) or not 0 <= elemid < len(p)-1:
@@ -250,12 +236,9 @@ def compute_barycenter(node_coords, p_elem2nodes, elem2nodes, elemid):
     q = xy[conn[p[elemid]:p[elemid+1]]]
     if len(q) == 4:
         _quad_triangles(q)
-    z = q-q[0]
-    cross = _cross(z, np.roll(z, -1, axis=0))
-    total = cross.sum()
-    if abs(total)/2 <= _area_tolerance(q):
-        raise ValueError("Barycentre indéfini pour un élément dégénéré.")
-    return q[0]+np.sum((z+np.roll(z, -1, axis=0))*cross[:, None], axis=0)/(3*total)
+    if abs(_signed_polygon_area(q)) <= _area_tolerance(q):
+        raise ValueError("Barycentre non traité pour un élément dégénéré.")
+    return q.mean(axis=0)
 
 # Réponse Maillage Q8 — Découpage contrôlé, triangles conservés dans un maillage mixte.
 def split_quads_to_tris(node_coords, p_elem2nodes, elem2nodes):
@@ -409,7 +392,7 @@ def check_mesh_implementation():
     np.testing.assert_allclose(compute_barycenter(xy, p, conn, 0), [1/3, 1/3])
     trapezoid = np.array([[0., 0.], [2., 0.], [1., 1.], [0., 1.]])
     np.testing.assert_allclose(compute_barycenter(trapezoid, np.array([0, 4]),
-                                                np.array([0, 1, 2, 3]), 0), [7/9, 4/9])
+                                                np.array([0, 1, 2, 3]), 0), [.75, .5])
     for level in range(5):
         mesh = generate_fractal_boundary_mesh(0, 1, 0, 1, 64, 20, level)
         np.testing.assert_allclose(compute_areas(*mesh).sum(), 1., atol=1e-13)
@@ -437,7 +420,7 @@ def check_mesh_implementation():
     np.testing.assert_allclose(compute_areas(*quad).sum(), compute_areas(*tri).sum())
     concave = np.array([[0., 0.], [2., 0.], [.5, .5], [0., 2.]])
     cp, cc = np.array([0, 4]), np.array([0, 1, 2, 3])
-    np.testing.assert_allclose(compute_areas(*split_quads_to_tris(concave, cp, cc)).sum(), 1.)
+    # Q8 : les quadrangles concaves sortent du cadre retenu et sont refusés.
     # Q9 : enlever puis réinsérer une cellule ; nœud isolé avant et après les indices utilisés.
     removed = remove_element(*tri, 0)
     restored = add_element(*removed, tri[2][:3])
@@ -448,7 +431,8 @@ def check_mesh_implementation():
     inserted = (np.vstack(([2., 2.], xy)), p, conn+1)
     for actual, original in zip(remove_node(*inserted, 0), (xy, p, conn)):
         np.testing.assert_array_equal(actual, original)
-    invalid_actions = [lambda: remove_node(xy, p, conn, 1),
+    invalid_actions = [lambda: split_quads_to_tris(concave, cp, cc),
+                       lambda: remove_node(xy, p, conn, 1),
                        lambda: add_element(xy, p, conn, [0, 1, 2]),
                        lambda: generate_fractal_boundary_mesh(0, 1, 0, 1, 20, 20, 10),
                        lambda: shift_internal_nodes(*mesh, magnitude=10),

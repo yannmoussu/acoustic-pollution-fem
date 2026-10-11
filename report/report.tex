@@ -146,29 +146,22 @@ Le cosinus du plus petit angle augmente lorsque ce dernier diminue. Sa distribut
 \resultfigure{Figure4.png}{Cosinus du plus petit angle. Une valeur proche de 1 signale un angle très petit.}{0.8}
 
 \subsection{Barycentre d'un élément}
-Cette partie traite la question Q7.
-
-\paragraph{Alternative envisagée et résultat.}
-Pour Q7, la moyenne des sommets serait exacte sur un parallélogramme, mais pas sur tout quadrangle. Le trapèze $(0,0),(2,0),(1,1),(0,1)$ donne une moyenne $(3/4,1/2)$, alors que l'intégration surfacique donne $G=(7/9,4/9)$. Cet exemple justifie le centroïde surfacique lorsque le terme barycentre désigne celui d'une cellule de densité uniforme.
-
-\paragraph{Méthode retenue et résultat.}
-Pour un triangle, le centroïde est $(P_0+P_1+P_2)/3$. Pour un quadrangle quelconque, la moyenne des quatre sommets n'est généralement pas le centroïde surfacique. Le programme calcule ce dernier par
+Cette partie traite la question Q7. On adopte le barycentre des sommets affectés de poids égaux :
 \begin{equation*}
-G=\frac{1}{6a}\sum_{j=0}^{m-1}(P_j+P_{j+1})\det(P_j,P_{j+1}),
-\qquad P_m=P_0,
+G=\frac1m\sum_{j=0}^{m-1}P_j,\qquad m=3\ \text{ou}\ 4.
 \end{equation*}
-avec $a$ l'aire signée ; le calcul est translaté autour du premier sommet pour sa stabilité. L'indice de l'élément et son aire sont vérifiés. Le cas triangulaire retrouve la moyenne des trois sommets.
+Pour un triangle, cette moyenne est aussi le centroïde surfacique. Il en est de même pour un parallélogramme. Pour un quadrangle convexe quelconque, elle définit le barycentre des sommets ; elle ne représente pas nécessairement le centre de masse de la surface. Cette convention simple suffit aux opérations étudiées, sans introduire une intégration polygonale supplémentaire.
 
 \subsection{Subdivision des quadrangles}
 Cette partie traite la question Q8.
 
 \paragraph{Alternative envisagée et résultat.}
-Pour Q8, choisir la diagonale la plus courte ou celle qui maximise le plus petit angle peut améliorer certaines formes. Sur un rectangle, les deux diagonales ont la même longueur et produisent les mêmes angles : aucune ne domine ce critère. La diagonale fixe suffit donc à la famille régulière et assure un protocole cohérent. Sur un quadrangle concave, la validité géométrique prime : une diagonale extérieure serait refusée. Le code choisit une subdivision admissible, sans résoudre un problème général d'optimisation de qualité.
+Pour Q8, choisir la diagonale la plus courte ou celle qui maximise le plus petit angle peut améliorer certaines formes. Sur un rectangle, les deux diagonales ont la même longueur et produisent les mêmes angles : aucune ne domine ce critère. La diagonale fixe suffit donc à la famille régulière et assure un protocole cohérent. On se limite aux quadrangles convexes à sommets ordonnés ; aucune optimisation générale de qualité n'est recherchée.
 
 \paragraph{Méthode retenue et résultat.}
 Pour un quadrangle convexe ordonné, la diagonale $(P_0,P_2)$ produit $(P_0,P_1,P_2)$ et $(P_0,P_2,P_3)$. Chaque cellule est examinée ; on ne suppose pas que le type du premier élément vaut pour tout le maillage. Les triangles d'un maillage mixte sont conservés.
 
-Une extension traite les quadrangles concaves simples : les deux diagonales sont essayées et seule celle dont les triangles ont le signe de l'aire du polygone et des aires non nulles est retenue. Les quadrangles croisés sont refusés. La somme des aires des deux triangles doit retrouver celle du quadrangle. La connectivité triangulaire aplatie et les nouveaux pseudo-pointeurs sont reconstruits. Les diagonales internes n'ajoutent pas de nœuds sur les côtés partagés, donc le découpage reste conforme entre cellules initialement conformes.
+La somme des aires des deux triangles retrouve celle du quadrangle. La connectivité et les pseudo-pointeurs sont reconstruits. Aucun nœud n'est ajouté sur les côtés partagés : le découpage conserve la conformité du maillage. Les cellules non convexes, croisées ou dégénérées sont refusées ; leur traitement général n'est pas nécessaire à la construction utilisée ici.
 
 \subsection{Opérations topologiques}
 Cette partie traite les questions Q9(i)--Q9(iv).
