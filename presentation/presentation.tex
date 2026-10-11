@@ -1,4 +1,4 @@
-\documentclass[12pt,aspectratio=169]{beamer}
+\documentclass[12pt,aspectratio=169,t]{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
@@ -12,7 +12,7 @@
 \author{Yann MOUSSU}
 \institute{CentraleSupélec}
 \date{10 octobre 2026}
-\newcommand{\figureresultat}[2]{\begin{center}\includegraphics[width=#2\textwidth,height=.53\textheight,keepaspectratio]{../report/figures/#1}\end{center}}
+\newcommand{\figureresultat}[2]{\par\smallskip{\centering\includegraphics[width=#2\textwidth,height=.53\textheight,keepaspectratio]{../report/figures/#1}\par}\smallskip}
 \begin{document}
 \begin{frame}\titlepage\end{frame}
 
@@ -47,12 +47,12 @@ Une aire positive est nécessaire au calcul ; elle ne suffit pas à garantir une
 
 \begin{frame}{Déplacement : première approche et choix retenu}
 \textbf{Première approche :} déplacer chaque nœud d'une même distance, indépendante de la taille du maillage.
-\begin{center}
+\par\smallskip{\centering
 \begin{tabular}{lrrrr}\toprule
 Résolution horizontale & 16 & 32 & 64 & 128\\\midrule
 Distance fixe / diamètre moyen & 0,039 & 0,078 & 0,155 & 0,310\\\bottomrule
 \end{tabular}
-\end{center}
+\par}\smallskip
 Pour une distance de $0,01$, la perturbation relative augmente à chaque raffinement. Cette première approche est écartée pour comparer des perturbations de même intensité relative.
 \begin{block}{Méthode retenue}
 Le déplacement est proportionnel à une longueur locale : $\mu\ell_j$. La frontière reste fixe et les aires sont contrôlées après déplacement.
@@ -94,7 +94,7 @@ Les signes des aires sont contrôlés après déplacement. Une amplitude qui inv
 
 \begin{frame}{Comparaison avant et après déplacement}
 Pour Q6, on compare 1365 nœuds et 2560 triangles sur une frontière fractale de niveau 3, dont la construction sera précisée pour Q10. Le déplacement interne conserve le contour.
-\begin{center}\includegraphics[width=.95\textwidth,height=.50\textheight,keepaspectratio]{../report/figures/mesh_comparison.png}\end{center}
+\par\smallskip{\centering\includegraphics[width=.95\textwidth,height=.50\textheight,keepaspectratio]{../report/figures/mesh_comparison.png}\par}\smallskip
 L'aire totale reste égale à 1 ; l'aire minimale passe de $3,6914\times10^{-4}$ à $2,9031\times10^{-4}$, sans inversion.
 \end{frame}
 
@@ -134,7 +134,7 @@ Les triangles des maillages mixtes sont conservés. Les opérations topologiques
 
 \begin{frame}{Vérifier les opérations d'ajout et de retrait}
 Après les opérations inverses, le code retrouve exactement les trois tableaux initiaux : coordonnées, connectivité et pseudo-pointeurs.
-\begin{center}\includegraphics[width=.88\textwidth,height=.61\textheight,keepaspectratio]{../report/figures/topology_checks.png}\end{center}
+\par\smallskip{\centering\includegraphics[width=.88\textwidth,height=.61\textheight,keepaspectratio]{../report/figures/topology_checks.png}\par}\smallskip
 \end{frame}
 
 \begin{frame}{Construction d'une frontière fractale}
@@ -152,7 +152,7 @@ La figure suivante montre les approximations calculées.
 
 \begin{frame}{Niveaux fractals et conservation de l'aire}
 Le code additionne les aires des triangles à chaque niveau : les cinq valeurs restent égales à 1 à une tolérance relative de $10^{-12}$.
-\begin{center}\includegraphics[width=.9\textwidth,height=.43\textheight,keepaspectratio]{../report/figures/fractal_levels.png}\end{center}
+\par\smallskip{\centering\includegraphics[width=.9\textwidth,height=.43\textheight,keepaspectratio]{../report/figures/fractal_levels.png}\par}\smallskip
 La transformation $y(x,\eta)=\eta(1+d_L(x))$ répartit la déformation sur toutes les rangées. Les niveaux 0 à 4 sont contrôlés sur $64\times20$ : aire conservée et triangles positifs.
 \end{frame}
 
@@ -278,20 +278,20 @@ Résultats retenus sur $128\times32$ : $\|e\|_{L^2}=2,8934\times10^{-3}$ à $k=3
 
 \begin{frame}{Stockage et définition de l'erreur}
 À $k=3\pi$ sur $128\times32$, la norme nodale issue de $M$ vaut $2,5731\times10^{-3}$, contre $2,8934\times10^{-3}$ pour l'erreur continue, soit ici $11,1\,\%$ de moins.
-\begin{center}\includegraphics[width=\textwidth,height=.49\textheight,keepaspectratio]{../report/figures/choices.png}\end{center}
+\par\smallskip{\centering\includegraphics[width=\textwidth,height=.49\textheight,keepaspectratio]{../report/figures/choices.png}\par}\smallskip
 Si $u_h=I_hu^*$, l'erreur nodale est nulle, mais l'erreur continue subsiste. Une mesure nodale ne suffit donc pas à évaluer l'erreur demandée.
 \end{frame}
 
 
 \begin{frame}{Échantillonnage intérieur et contrôles simples}
 Une \textbf{grille barycentrique} est une grille triangulaire dont les côtés sont divisés en $n$ intervalles ; chaque point est décrit par les poids de ses trois sommets.
-\begin{center}\includegraphics[width=.75\textwidth,height=.40\textheight,keepaspectratio]{../report/figures/sampling_grids.png}\end{center}
+\par\smallskip{\centering\includegraphics[width=.75\textwidth,height=.40\textheight,keepaspectratio]{../report/figures/sampling_grids.png}\par}\smallskip
 Avec 8 et 16 divisions, on teste 45 et 153 points par triangle. Le maximum est comparé entre ces grilles avant un raffinement éventuel.
 \end{frame}
 
 \begin{frame}{Contrôler le calcul avec une solution connue}
 \textbf{Laplace :} $-\Delta u=0$. On impose au bord la fonction \textbf{affine} $u=1+2x-3y$ ; ses valeurs au bord sont appelées sa \textbf{trace}.
-\begin{center}
+\par\smallskip{\centering
 \begin{tabular}{lrr}\toprule
 Contrôle & Attendu & Calcul\\\midrule
 Erreur nodale affine maximale & 0 & $<2\times10^{-13}$\\
@@ -299,7 +299,7 @@ Erreur constante : $L^2$ & 1 & 1,000000000000\\
 Erreur constante : $H^1$ & 1 & 1,000000000000\\
 Somme des poids d'intégration & 0,5 & 0,500000000000\\\bottomrule
 \end{tabular}
-\end{center}
+\par}\smallskip
 Les intégrales des trois poids barycentriques valent chacune $1/6$ ; le code vérifie aussi ces valeurs, appelées moments barycentriques.
 \end{frame}
 

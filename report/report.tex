@@ -9,6 +9,10 @@
 \usepackage{hyperref}
 \usepackage[section]{placeins}
 \geometry{margin=2.2cm}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{6pt}
+\setlength{\belowcaptionskip}{0pt}
 \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue,
 pdftitle={Maillages et précision FEM d'une onde acoustique},pdfauthor={Yann MOUSSU}}
 \setlength{\emergencystretch}{3em}
@@ -38,7 +42,6 @@ On note $\Omega$ le domaine de calcul, $\Gamma$ son bord, $\mathcal T_h$ l'ensem
 
 L'\textbf{interpolation} construit une fonction simple à partir de ses valeurs aux nœuds : en $P_1$, elle est affine, de la forme $a+bx+cy$, sur chaque triangle. Une \textbf{quadrature} remplace une intégrale par une somme pondérée de valeurs ; son contrôle consiste à augmenter le nombre de points et à comparer les résultats. Pour un système $Au=b$, le \textbf{résidu} $Au-b$ mesure l'écart aux équations après résolution. Enfin, la \textbf{matrice de rigidité} $K$ rassemble les intégrales des produits de gradients des fonctions de base ; sa définition précise sera donnée dans la partie FEM \cite{fem,linear}.
 
-\newpage
 \section{Maillage}
 \subsection{Représentation du maillage}
 \subsubsection{Structure à pseudo-pointeurs du cours}
@@ -156,7 +159,7 @@ Cette partie traite les questions Q9(i)--Q9(iv).
 \item La suppression d'un nœud est autorisée uniquement s'il est isolé. Les indices strictement supérieurs sont décrémentés ; les autres sont conservés. Si le nœud est encore référencé, il faut d'abord traiter les éléments incidents. Cela évite qu'une cellule comme $[0,1,2]$ devienne $[0,1,1]$.
 \end{enumerate}
 La figure suivante illustre deux vérifications : suppression puis réinsertion du dernier triangle ; ajout puis retrait d'un nœud isolé, c'est-à-dire utilisé par aucun élément. Dans les deux cas, le code retrouve exactement les coordonnées, la connectivité et les pseudo-pointeurs initiaux.
-\resultfigure{topology_checks.png}{Vérifications de Q9 : les opérations inverses retrouvent les tableaux initiaux ; le nœud isolé ajouté est marqué en rouge.}{1}
+\resultfigure{topology_checks.png}{Vérifications de Q9 : les opérations inverses retrouvent les tableaux initiaux ; le nœud isolé ajouté est marqué en rouge.}{0.8}
 
 \subsection{Frontière fractale à aire constante}
 Cette partie traite la question Q10 dans sa première formulation : une forme fractale est construite sur le bord supérieur, avec un niveau indépendant de la résolution du maillage.
@@ -170,7 +173,7 @@ avec $d_0=0$. À chaque niveau, une copie du même motif est ajoutée à une éc
 La borne $|d_L|\leq a/(1-r)=0,125$ garantit une hauteur positive sur le carré unité. Les sommets du niveau $L$ sont situés sur une grille de pas $W/2^{L+1}$. On exige, pour $L>0$, que $n_x$ soit un multiple de $2^{L+1}$ : tous les sommets de la frontière sont alors représentés exactement. Le niveau est choisi séparément de $n_x$ ; une résolution incompatible est refusée plutôt que de supprimer des détails de la géométrie.
 
 Les niveaux 0 à 4 sont représentés ci-dessous sur une même résolution horizontale $n_x=64$. Le raffinement du maillage à niveau fixé subdivise les segments existants, sans changer la frontière.
-\resultfigure{fractal_levels.png}{Approximations polygonales successives de la frontière fractale, amplitude initiale 0,05 et rapport vertical 0,6.}{1}
+\resultfigure{fractal_levels.png}{Approximations polygonales successives de la frontière fractale, amplitude initiale 0,05 et rapport vertical 0,6.}{0.9}
 
 \subsubsection{Application sur toutes les rangées}
 Pour $\eta_j=j/n_y$, la transformation est
@@ -327,7 +330,7 @@ La norme $H^1$, et non seulement sa semi-norme, est utilisée dans toutes les é
 Une somme d'erreurs nodales pondérée par un diamètre global ne représente pas cette intégration. De même, $e_{\rm nodes}^*Me_{\rm nodes}$ calcule la norme de $I_hu^*-u_h$, pas celle de $u^*-u_h$ ; elle omet l'erreur d'interpolation $u^*-I_hu^*$. Les valeurs exactes sont donc évaluées directement aux points de quadrature.
 
 La comparaison suivante reprend les quatre résolutions et le même solveur. Le panneau de gauche illustre l'économie de stockage établie lors de l'assemblage ; celui de droite distingue l'erreur continue, l'erreur nodale interpolée et l'erreur d'interpolation seule.
-\resultfigure{choices.png}{Comparaisons complémentaires : stockage réel de $K,M$ hors factorisation et mesures d'erreur sur maillage régulier à $k=3\pi$.}{1}
+\resultfigure{choices.png}{Comparaisons complémentaires : stockage réel de $K,M$ hors factorisation et mesures d'erreur sur maillage régulier à $k=3\pi$.}{0.9}
 
 \subsubsection{Quadrature et convergence numérique}
 Une quadrature approche $\int_T f$ par $\sum_q w_qf(P_q)$ : les $P_q$ sont les points d'évaluation et les $w_q$ leurs poids. Le contrôle augmente le nombre de points pour vérifier que le résultat varie peu.
@@ -405,18 +408,18 @@ Cette partie traite la question Q1.
 \resulttable{regular_alpha.tex}{Pentes globales en $h$ à fréquence fixée, quatre résolutions.}
 \resulttable{regular_beta.tex}{Pentes en $k$ à résolution fixée, trois fréquences.}
 La pente $L^2$ vaut environ 1,9745 pour $k=\pi$, mais 1,6926 pour $k=3\pi$ sur l'ensemble des quatre maillages. Une pente plus faible sur des maillages grossiers n'implique pas à elle seule une perte de l'ordre asymptotique ; les pentes locales permettent d'examiner l'effet du raffinement. À $k=3\pi$, la pente locale $L^2$ passe de 1,3748 entre les deux premiers maillages à 1,9267 entre les deux derniers ; à $k=\pi$, elle atteint 1,9959 sur le dernier raffinement. La convergence se rapproche ainsi de l'ordre 2, comme l'illustrent les courbes d'erreur en fonction du diamètre moyen. La norme $H^1$ donne des pentes entre 1,0004 et 1,0492.
-\resultfigure{Figure5.png}{Erreur selon le diamètre moyen pour les trois normes et les trois fréquences. Les traits interrompus sont les lois ajustées.}{1}
+\resultfigure{Figure5.png}{Erreur selon le diamètre moyen pour les trois normes et les trois fréquences. Les traits interrompus sont les lois ajustées.}{0.9}
 
 La représentation en fonction du nombre d’onde complète les pentes fréquentielles du tableau et compare les résolutions à fréquence variable.
-\resultfigure{Figure6.png}{Erreur selon le nombre d'onde, chaque courbe correspondant à une résolution.}{1}
+\resultfigure{Figure6.png}{Erreur selon le nombre d'onde, chaque courbe correspondant à une résolution.}{0.9}
 
 \subsubsection{Loi combinée mesurée}
 \resulttable{regular_joint.tex}{Ajustements conjoints sur les 12 cas ; l'écart maximal est relatif au modèle prédit.}
 L'ajustement $L^2$ donne $\widehat\alpha\simeq1,8427$ et $\widehat\beta\simeq3,0479$. Son $R^2_{\log}\simeq0,99658$ est élevé, mais l'écart relatif maximal avoisine 25\,\%. Pour $H^1$, les exposants valent environ 1,0202 et 2,0454, avec un écart maximal d'environ 4\,\%. La loi unique résume donc mieux les mesures $H^1$ sur cette grille que les mesures $L^2$. La surface seule ne remplace pas ce diagnostic.
-\resultfigure{Figure7.png}{Surfaces d'erreur en coordonnées logarithmiques et grilles du modèle conjoint.}{1}
+\resultfigure{Figure7.png}{Surfaces d'erreur en coordonnées logarithmiques et grilles du modèle conjoint.}{0.9}
 
 La quantité combinée permet de comparer les mesures au modèle ajusté pour chaque norme ; les écarts à une loi unique restent ceux quantifiés dans le tableau.
-\resultfigure{Figure8.png}{Erreur selon la quantité combinée construite avec les exposants estimés pour chaque norme.}{1}
+\resultfigure{Figure8.png}{Erreur selon la quantité combinée construite avec les exposants estimés pour chaque norme.}{0.9}
 
 \subsection{Résultats après déplacement interne}
 Cette partie traite la question Q2.
@@ -431,20 +434,20 @@ Sur le maillage régulier, le rapport d'aspect est constant, environ 2,7147, et 
 \resulttable{shifted_alpha.tex}{Pentes globales en $h$, diamètre moyen mesuré après déplacement.}
 \resulttable{shifted_beta.tex}{Pentes en $k$ pour chaque résolution.}
 À $k=\pi$, la pente $L^2$ globale vaut environ 2,0730 et celle de $H^1$ environ 1,0215. La pente $L^2$ légèrement supérieure à 2 sur quatre cas ne démontre pas une superconvergence générale. Le déplacement modifie les contributions locales et les transitions de régime ; les pentes locales doivent guider l'interprétation. À $k=\pi$, la pente locale $L^2$ diminue de 2,1093 à 2,0319, tandis que celle de $H^1$ passe de 1,0335 à 1,0111. À $k=3\pi$, la pente locale $L^2$ augmente de 1,4659 à 1,9449. Les courbes de convergence confirment donc une approche des ordres attendus, plutôt qu'une superconvergence persistante.
-\resultfigure{Figure9.png}{Convergence spatiale pour les trois normes, déplacement fixe.}{1}
+\resultfigure{Figure9.png}{Convergence spatiale pour les trois normes, déplacement fixe.}{0.9}
 
 La représentation en fonction du nombre d’onde complète les pentes fréquentielles du tableau et compare les résolutions à fréquence variable.
-\resultfigure{Figure10.png}{Croissance de l'erreur en fonction de $k$.}{1}
+\resultfigure{Figure10.png}{Croissance de l'erreur en fonction de $k$.}{0.9}
 
 \subsubsection{Ajustement conjoint et comparaison}
 \resulttable{shifted_joint.tex}{Exposants conjoints, qualité logarithmique et écarts relatifs.}
 L'ajustement $L^2$ donne $\widehat\alpha\simeq1,9237$ et $\widehat\beta\simeq3,0107$, avec un écart relatif maximal d'environ 27\,\%. Pour $H^1$, les exposants valent 1,0441 et 2,0486 ; l'écart maximal est proche de 5\,\%. La distinction entre précision moyenne d'une régression et fidélité de chaque cas reste donc nécessaire.
 
 Au maillage grossier $16\times4$, $k=\pi$, l'erreur $L^2$ passe de $4,905\times10^{-3}$ à $6,132\times10^{-3}$, soit une hausse d'environ 25\,\%. Au maillage fin $128\times32$, elle passe de $8,099\times10^{-5}$ à $8,219\times10^{-5}$, soit environ 1,5\,\%. Les effets observés dépendent de la résolution ; cette seule direction de déplacement ne permet pas de conclure sur toute famille de maillages irréguliers.
-\resultfigure{Figure11.png}{Surface mesurée et modèle ajusté, chaque panneau représentant une norme.}{1}
+\resultfigure{Figure11.png}{Surface mesurée et modèle ajusté, chaque panneau représentant une norme.}{0.9}
 
 La quantité combinée permet de comparer les mesures au modèle ajusté pour chaque norme ; les écarts à une loi unique restent ceux quantifiés dans le tableau.
-\resultfigure{Figure12.png}{Erreur selon $\bar h^{\widehat\alpha}k^{\widehat\beta}$ avec exposants propres au maillage déformé.}{1}
+\resultfigure{Figure12.png}{Erreur selon $\bar h^{\widehat\alpha}k^{\widehat\beta}$ avec exposants propres au maillage déformé.}{0.9}
 
 \subsection{Analyse critique : interpolation, phase et stabilité}
 \subsubsection{Séparer les contributions d'erreur}
